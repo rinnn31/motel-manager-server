@@ -1,0 +1,37 @@
+package com.github.rinnn31.motelserver.service.support;
+
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Service;
+
+import com.github.rinnn31.motelserver.config.TwilioProperties;
+import com.twilio.Twilio;
+import com.twilio.rest.api.v2010.account.Message;
+import com.twilio.type.PhoneNumber;
+
+import jakarta.annotation.PostConstruct;
+
+@Service
+@ConditionalOnProperty(name = "sms.provider", havingValue = "twilio")
+public class TwilioSmsSender implements ISmsSender {
+    private final TwilioProperties twilioProperties;
+
+    public TwilioSmsSender(TwilioProperties twilioProperties) {
+        this.twilioProperties = twilioProperties;
+    }
+
+    @PostConstruct
+    public void init() {
+        Twilio.init(twilioProperties.accountSid(), twilioProperties.authToken());
+    }
+    
+    @Override
+    public boolean sendMessage(String phoneNumber, String messageStr) {
+        var message = Message.creator(
+            new PhoneNumber(phoneNumber),
+            new PhoneNumber(twilioProperties.fromNumber()),
+            messageStr
+        ).create();
+        return message.getStatus() != Message.Status.FAILED;
+    }
+    
+}
