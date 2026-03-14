@@ -1,0 +1,41 @@
+version: '3.9'
+services:
+  springboot-server:
+    image: motel
+    container_name: springboot-server
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+      - redis
+    environment:
+      - DATASOURCE_URL=jdbc:mysql://database:3306/motel_manager_db
+      - DATASOURCE_USERNAME=user
+      - DATASOURCE_PASSWORD=password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET}
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_FROM_NUMBER=${TWILIO_FROM_NUMBER}
+      
+  database:
+    image: mysql:8.0
+    container_name: mysql-database
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: motel_manager_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+  redis:
+    image: redis:latest
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+
+volumes:
+  db_data:

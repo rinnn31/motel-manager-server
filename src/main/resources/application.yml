@@ -1,0 +1,43 @@
+spring:
+  mvc:
+    contentnegotiation:
+      defaultcontenttype: application/json
+  datasource:
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    test-while-idle: true
+    test-on-borrow: true
+    validation-query: SELECT 1
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
+
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-ttl: 900000
+    refresh-token-ttl: 604800000
+
+sms:
+  provider: ${SMS_PROVIDER:esms}
+  twilio:
+    account-sid: ${TWILIO_ACCOUNT_SID}
+    auth-token: ${TWILIO_AUTH_TOKEN}
+    from-number: ${TWILIO_FROM_NUMBER}
+  esms:
+    api-key: ${ESMS_API_KEY}
+    api-secret: ${ESMS_API_SECRET}
+    brand-name: ${ESMS_BRAND_NAME}
+otp:
+  expiration-minutes: 60
+  max-attempts-per-day: 10
+  resend-cooldown-seconds: 60

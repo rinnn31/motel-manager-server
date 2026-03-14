@@ -1,3 +1,7 @@
 target
 .vscode
+.env
 bin
+
+# Ignore local run script
+local.sh
