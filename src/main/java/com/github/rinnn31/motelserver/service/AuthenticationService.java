@@ -6,13 +6,13 @@ import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.github.rinnn31.motelserver.dto.account.UserInfo;
 import com.github.rinnn31.motelserver.dto.authentication.AuthenticationResult;
 import com.github.rinnn31.motelserver.dto.authentication.LoginInput;
 import com.github.rinnn31.motelserver.dto.authentication.RegisterInput;
 import com.github.rinnn31.motelserver.dto.authentication.ResetPasswordInput;
 import com.github.rinnn31.motelserver.dto.authentication.TokenResult;
 import com.github.rinnn31.motelserver.dto.authentication.UserIdTokenInput;
-import com.github.rinnn31.motelserver.dto.common.UserInfo;
 import com.github.rinnn31.motelserver.entity.UserEntity;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;

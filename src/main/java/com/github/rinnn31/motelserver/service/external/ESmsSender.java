@@ -1,4 +1,4 @@
-package com.github.rinnn31.motelserver.service.support;
+package com.github.rinnn31.motelserver.service.external;
 
 import java.io.IOException;
 import java.net.URI;
@@ -8,7 +8,7 @@ import java.net.http.HttpRequest;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import com.github.rinnn31.motelserver.config.ESmsProperties;
+import com.github.rinnn31.motelserver.config.properties.ESmsProperties;
 import com.github.rinnn31.motelserver.utils.JsonHelper;
 
 @Service

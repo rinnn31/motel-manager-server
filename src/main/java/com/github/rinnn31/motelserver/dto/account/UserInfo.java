@@ -1,4 +1,4 @@
-package com.github.rinnn31.motelserver.dto.common;
+package com.github.rinnn31.motelserver.dto.account;
 
 import com.github.rinnn31.motelserver.entity.UserEntity;
 
