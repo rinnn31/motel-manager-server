@@ -28,11 +28,8 @@ public class AuthenticationController {
     
     private final AuthenticationService authenticationService;
 
-    private final AccountService accountService;
-
-    public AuthenticationController(AuthenticationService authenticationService, AccountService accountService) {
+    public AuthenticationController(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
-        this.accountService = accountService;
     }
 
     @PostMapping("/login")
@@ -64,23 +61,5 @@ public class AuthenticationController {
     public void sendResetPasswordOtp(@RequestParam String phoneNumber) {
         Locale locale = LocaleContextHolder.getLocale();
         authenticationService.sendResetPasswordOtp(phoneNumber, locale);
-    }
-
-    @PostMapping("/send-verification-otp")
-    public void sendVerificationOtp(@RequestParam String phoneNumber) {
-        Locale locale = LocaleContextHolder.getLocale();
-        authenticationService.sendAccountVerificationCode(phoneNumber, locale);
-    }
-
-    @PostMapping("/change-contactpoint")
-    public void changeVerificationContactpoint(@RequestParam String newPhoneNumber) {
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        accountService.changeContactpoint(UUID.fromString(userId), newPhoneNumber);
-    }
-
-    @PostMapping("/verify-account")
-    public void verifyAccount(@RequestParam String otp) {
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        authenticationService.verifyAccount(userId, otp);
     }
 }

@@ -7,11 +7,11 @@ import org.springframework.context.MessageSource;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import com.github.rinnn31.motelserver.config.OtpProperties;
-import com.github.rinnn31.motelserver.dto.common.SendOtpResult;
+import com.github.rinnn31.motelserver.config.properties.OtpProperties;
+import com.github.rinnn31.motelserver.dto.account.SendOtpResult;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
-import com.github.rinnn31.motelserver.service.support.ISmsSender;
+import com.github.rinnn31.motelserver.service.external.ISmsSender;
 
 @Service
 public class OtpService {

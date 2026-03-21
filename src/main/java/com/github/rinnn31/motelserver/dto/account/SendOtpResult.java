@@ -1,4 +1,4 @@
-package com.github.rinnn31.motelserver.dto.common;
+package com.github.rinnn31.motelserver.dto.account;
 
 public record SendOtpResult(
     boolean otpSent,

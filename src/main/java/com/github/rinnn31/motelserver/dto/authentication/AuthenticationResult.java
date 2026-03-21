@@ -1,7 +1,7 @@
 package com.github.rinnn31.motelserver.dto.authentication;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.github.rinnn31.motelserver.dto.common.UserInfo;
+import com.github.rinnn31.motelserver.dto.account.UserInfo;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record AuthenticationResult(
