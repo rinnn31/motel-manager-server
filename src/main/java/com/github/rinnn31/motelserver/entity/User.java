@@ -2,6 +2,8 @@ package com.github.rinnn31.motelserver.entity;
 
 import java.util.UUID;
 
+import org.hibernate.annotations.UuidGenerator;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,9 +12,10 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "users")
-public class UserEntity {
+public class User {
     @Id
     @GeneratedValue
+    @UuidGenerator
     private UUID id;
 
     private String fullName;

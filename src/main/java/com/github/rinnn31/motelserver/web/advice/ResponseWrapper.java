@@ -14,7 +14,7 @@ import com.github.rinnn31.motelserver.dto.common.ApiResponse;
 public class ResponseWrapper implements ResponseBodyAdvice<Object> {
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return true;
     }
 
     @Override
