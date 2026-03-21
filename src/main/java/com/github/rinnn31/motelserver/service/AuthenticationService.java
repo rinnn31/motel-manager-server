@@ -1,7 +1,6 @@
 package com.github.rinnn31.motelserver.service;
 
 import java.util.Locale;
-import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,7 +12,7 @@ import com.github.rinnn31.motelserver.dto.authentication.RegisterInput;
 import com.github.rinnn31.motelserver.dto.authentication.ResetPasswordInput;
 import com.github.rinnn31.motelserver.dto.authentication.TokenResult;
 import com.github.rinnn31.motelserver.dto.authentication.UserIdTokenInput;
-import com.github.rinnn31.motelserver.entity.UserEntity;
+import com.github.rinnn31.motelserver.entity.User;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.repository.UserRepository;
@@ -21,8 +20,6 @@ import com.github.rinnn31.motelserver.repository.UserRepository;
 @Service
 public class AuthenticationService {
     public static final String VERIFY_ACTION_RESET_PASSWORD = "reset_password";
-
-    public static final String VERIFY_ACTION_ACCOUNT_VERIFICATION = "account_verification";
 
     private final UserRepository userRepository;
 
@@ -42,10 +39,9 @@ public class AuthenticationService {
     public AuthenticationResult register(RegisterInput registerModel) {
         if (userRepository.existsByPhoneNumber(registerModel.phoneNumber())) {
             throw new AppError(ErrorCode.PHONE_NUMBER_USED);
-        }
-        
+        } 
 
-        UserEntity user = new UserEntity();
+        User user = new User();
         user.setFullName(registerModel.fullName());
         user.setPhoneNumber(registerModel.phoneNumber());
         user.setGender(registerModel.gender());
@@ -89,42 +85,7 @@ public class AuthenticationService {
             UserInfo.fromEntity(user)
         );
     }
-
-    public void sendAccountVerificationCode(String phoneNumber, Locale locale) {
-        var user = userRepository.findByPhoneNumber(phoneNumber)
-            .orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
-
-        if (user.isVerified()) {
-            throw new AppError(ErrorCode.INVALID_OPERATION);
-        }
-
-        otpService.sendOtp(
-            user.getId().toString(), 
-            user.getPhoneNumber(), 
-            VERIFY_ACTION_ACCOUNT_VERIFICATION, 
-            locale);
-    }   
-
-    public void verifyAccount(String userId, String otp) {
-        var user = userRepository.findById(UUID.fromString(userId))
-            .orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
-
-        if (user.isVerified()) {
-            throw new AppError(ErrorCode.INVALID_OPERATION);
-        }
-        if (!otpService.verifyOtp(
-                user.getId().toString(), 
-                user.getPhoneNumber(), 
-                VERIFY_ACTION_ACCOUNT_VERIFICATION, 
-                otp, 
-                true)) {
-            throw new AppError(ErrorCode.VERIFY_FAILED);
-        }
-
-        user.setVerified(true);
-        userRepository.save(user);
-    }
-
+    
     public void resetPassword(ResetPasswordInput data) {
         var user = userRepository.findByPhoneNumber(data.phoneNumber())
             .orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
