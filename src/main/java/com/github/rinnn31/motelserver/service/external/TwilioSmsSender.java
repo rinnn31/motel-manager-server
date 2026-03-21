@@ -13,22 +13,22 @@ import jakarta.annotation.PostConstruct;
 @Service
 @ConditionalOnProperty(name = "sms.provider", havingValue = "twilio")
 public class TwilioSmsSender implements ISmsSender {
-    private final TwilioProperties twilioProperties;
+    private final TwilioProperties properties;
 
-    public TwilioSmsSender(TwilioProperties twilioProperties) {
-        this.twilioProperties = twilioProperties;
+    public TwilioSmsSender(TwilioProperties properties) {
+        this.properties = properties;
     }
 
     @PostConstruct
     public void init() {
-        Twilio.init(twilioProperties.accountSid(), twilioProperties.authToken());
+        Twilio.init(properties.accountSid(), properties.authToken());
     }
     
     @Override
     public boolean sendMessage(String phoneNumber, String messageStr) {
         var message = Message.creator(
             new PhoneNumber(phoneNumber),
-            new PhoneNumber(twilioProperties.fromNumber()),
+            new PhoneNumber(properties.fromNumber()),
             messageStr
         ).create();
         return message.getStatus() != Message.Status.FAILED;
