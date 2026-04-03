@@ -13,6 +13,7 @@ import com.github.rinnn31.motelserver.dto.authentication.RegisterForm;
 import com.github.rinnn31.motelserver.dto.authentication.ResetPasswordForm;
 import com.github.rinnn31.motelserver.dto.authentication.TokenResult;
 import com.github.rinnn31.motelserver.entity.User;
+import com.github.rinnn31.motelserver.entity.UserRole;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.repository.UserRepository;
@@ -46,6 +47,7 @@ public class AuthenticationService {
         user.setPhoneNumber(registerModel.phoneNumber());
         user.setGender(registerModel.gender());
         user.setPassword(passwordEncoder.encode(registerModel.password()));
+        user.setRole(registerModel.role() == 0 ? UserRole.LANDLORD : UserRole.TENANT);
         userRepository.save(user);
 
         String[] tokens = sessionManagementService.createJwtSession(user.getId().toString());

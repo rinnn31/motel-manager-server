@@ -19,6 +19,10 @@ public record RegisterForm(
 
     @NotNull(message = "Giới tính không được để trống")
     @Range(min = 0, max = 2, message = "Giới tính không hợp lệ")
-    Integer gender
+    Integer gender,
+
+    @NotNull(message = "Vai trò không được để trống")
+    @Range(min = 0, max = 1, message = "Vai trò không hợp lệ")
+    Integer role
 ) {
 }
