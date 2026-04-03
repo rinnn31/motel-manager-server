@@ -1,17 +1,17 @@
 package com.github.rinnn31.motelserver.service;
 
 import java.util.Locale;
+import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.github.rinnn31.motelserver.dto.account.UserInfo;
 import com.github.rinnn31.motelserver.dto.authentication.AuthenticationResult;
-import com.github.rinnn31.motelserver.dto.authentication.LoginInput;
-import com.github.rinnn31.motelserver.dto.authentication.RegisterInput;
-import com.github.rinnn31.motelserver.dto.authentication.ResetPasswordInput;
+import com.github.rinnn31.motelserver.dto.authentication.LoginForm;
+import com.github.rinnn31.motelserver.dto.authentication.RegisterForm;
+import com.github.rinnn31.motelserver.dto.authentication.ResetPasswordForm;
 import com.github.rinnn31.motelserver.dto.authentication.TokenResult;
-import com.github.rinnn31.motelserver.dto.authentication.UserIdTokenInput;
 import com.github.rinnn31.motelserver.entity.User;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
@@ -36,7 +36,7 @@ public class AuthenticationService {
         this.sessionManagementService = sessionManagementService;
     }
 
-    public AuthenticationResult register(RegisterInput registerModel) {
+    public AuthenticationResult register(RegisterForm registerModel) {
         if (userRepository.existsByPhoneNumber(registerModel.phoneNumber())) {
             throw new AppError(ErrorCode.PHONE_NUMBER_USED);
         } 
@@ -58,7 +58,7 @@ public class AuthenticationService {
         );
     }
 
-    public AuthenticationResult login(LoginInput data) {
+    public AuthenticationResult login(LoginForm data) {
         var user = userRepository.findByPhoneNumber(data.phoneNumber())
                 .orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
 
@@ -86,7 +86,7 @@ public class AuthenticationService {
         );
     }
     
-    public void resetPassword(ResetPasswordInput data) {
+    public void resetPassword(ResetPasswordForm data) {
         var user = userRepository.findByPhoneNumber(data.phoneNumber())
             .orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
 
@@ -109,13 +109,13 @@ public class AuthenticationService {
         
     }
 
-    public void logout(UserIdTokenInput data) {
-        sessionManagementService.invalidateSession(data.refreshToken(), data.userId());
+    public void logout(UUID userId, String refreshToken) {
+        sessionManagementService.invalidateSession(refreshToken, userId.toString());
     }
 
-    public TokenResult refresh(UserIdTokenInput data) {
-        String newAccessToken = sessionManagementService.refreshAccessToken(data.refreshToken(), data.userId());
-        return new TokenResult(newAccessToken, data.refreshToken());
+    public TokenResult refresh(UUID userId, String refreshToken) {
+        String newAccessToken = sessionManagementService.refreshAccessToken(refreshToken, userId.toString());
+        return new TokenResult(newAccessToken, refreshToken);
     }
 
     public void sendResetPasswordOtp(String phoneNumber, Locale locale) {

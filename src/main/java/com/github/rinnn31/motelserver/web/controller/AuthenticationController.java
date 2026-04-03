@@ -4,7 +4,7 @@ import java.util.Locale;
 import java.util.UUID;
 
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,18 +12,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.github.rinnn31.motelserver.dto.authentication.AuthenticationResult;
-import com.github.rinnn31.motelserver.dto.authentication.LoginInput;
-import com.github.rinnn31.motelserver.dto.authentication.RegisterInput;
-import com.github.rinnn31.motelserver.dto.authentication.ResetPasswordInput;
+import com.github.rinnn31.motelserver.dto.authentication.LoginForm;
+import com.github.rinnn31.motelserver.dto.authentication.RegisterForm;
+import com.github.rinnn31.motelserver.dto.authentication.ResetPasswordForm;
 import com.github.rinnn31.motelserver.dto.authentication.TokenResult;
-import com.github.rinnn31.motelserver.dto.authentication.UserIdTokenInput;
-import com.github.rinnn31.motelserver.service.AccountService;
+import com.github.rinnn31.motelserver.security.UserExtractor;
 import com.github.rinnn31.motelserver.service.AuthenticationService;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 
 @RestController
 @RequestMapping("/api/auth")
+@Validated
 public class AuthenticationController {
     
     private final AuthenticationService authenticationService;
@@ -33,27 +34,29 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public AuthenticationResult login(@Valid @RequestBody LoginInput body) {
+    public AuthenticationResult login(@Valid @RequestBody LoginForm body) {
         return authenticationService.login(body);
     }
 
     @PostMapping("/register")
-    public AuthenticationResult register(@Valid @RequestBody RegisterInput body) {
+    public AuthenticationResult register(@Valid @RequestBody RegisterForm body) {
         return authenticationService.register(body);
     }
 
     @PostMapping("/refresh")
-    public TokenResult refresh(@Valid @RequestBody UserIdTokenInput body) {
-        return authenticationService.refresh(body);
+    public TokenResult refresh(@NotBlank @RequestParam String refreshToken) {
+        UUID requesterId = UserExtractor.extractUserIdFromContext();
+        return authenticationService.refresh(requesterId, refreshToken);
     }
 
     @PostMapping("/logout")
-    public void logout(@Valid @RequestBody UserIdTokenInput body) {
-        authenticationService.logout(body);
+    public void logout(@NotBlank(message = "Vui lòng cung cấp refresh token để đăng xuất") @RequestParam String refreshToken) {
+        UUID requesterId = UserExtractor.extractUserIdFromContext();
+        authenticationService.logout(requesterId, refreshToken);
     }
 
     @PostMapping("/reset-password")
-    public void resetPassword(@Valid @RequestBody ResetPasswordInput resetPasswordModel) {
+    public void resetPassword(@Valid @RequestBody ResetPasswordForm resetPasswordModel) {
         authenticationService.resetPassword(resetPasswordModel);
     }
 
