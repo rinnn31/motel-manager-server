@@ -39,7 +39,7 @@ public class AccountService {
     public void changePassword(UUID userId, String oldPassword, String newPassword) {
         var user = userRepository.findById(userId).orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
         if (!user.getPassword().equals(oldPassword)) {
-            throw new RuntimeException("Old password is incorrect");
+            throw new AppError(ErrorCode.OLD_PASSWORD_INCORRECT);
         }
         user.setPassword(newPassword);
         userRepository.save(user);

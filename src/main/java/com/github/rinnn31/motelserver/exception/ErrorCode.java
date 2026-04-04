@@ -1,40 +1,39 @@
 package com.github.rinnn31.motelserver.exception;
 
 public enum ErrorCode {
+    /* Common */
+    INVALID_OPERATION("Hành động không hợp lệ"),
+    
     /* Authentication */
-    USER_NOT_FOUND("auth.user_not_found"),
-    PHONE_NUMBER_USED("auth.user_already_exists"),
-    USER_NOT_VERIFIED("auth.user_not_verified"),
-    INVALID_CREDENTIALS("auth.invalid_credentials"),
-    UNAUTHORIZED("auth.unauthorized"),
-    VERIFY_FAILED("auth.verify_failed"),
-    INVALID_REFRESH_TOKEN("auth.invalid_refresh_token"),
+    PHONE_NUMBER_USED("Số điện thoại đã được sử dụng"),
+    USER_NOT_VERIFIED("Tài khoản chưa được xác thực"),
+    INVALID_CREDENTIALS("Thông tin đăng nhập không hợp lệ"),
+    UNAUTHORIZED("Không có quyền truy cập"),
+    VERIFY_FAILED("Xác thực thất bại"),
+    INVALID_REFRESH_TOKEN("Refresh token không hợp lệ"),
 
-    /* Validation */
-    PHONE_NUMBER_NOT_BLANK("validation.phone_not_blank"),
-    PASSWORD_NOT_BLANK("validation.password_not_blank"),
-    FULL_NAME_NOT_BLANK("validation.full_name_not_blank"),
-    GENDER_NOT_BLANK("validation.gender_not_blank"),
-    PASSWORD_TOO_SHORT("validation.password_too_short"),
-    INVALID_GENDER("validation.invalid_gender"),
-    VERIFICATION_CODE_NOT_BLANK("validation.verification_code_not_blank"),
+    /* User */
+    USER_NOT_FOUND("Người dùng không tồn tại"),
+    OLD_PASSWORD_INCORRECT("Mật khẩu cũ không đúng"),
 
     /* Otp */
-    OTP_NOT_READY("otp.not_ready"),
-    OTP_EXPIRED("otp.expired"),
-    MAX_OTP_ATTEMPTS("otp.max_attempts"),
-    OTP_SENDING_FAILED("otp.sending_failed"),
+    OTP_NOT_READY("Vui lòng chờ trước khi yêu cầu mã OTP mới"),
+    OTP_EXPIRED("Mã OTP đã hết hạn"),
+    MAX_OTP_ATTEMPTS("Đã nhập sai mã OTP quá nhiều lần, vui lòng đợi trước khi thử lại"),
+    OTP_SENDING_FAILED("Gửi mã OTP thất bại, vui lòng thử lại sau"),
 
-    /* General */
-    INVALID_OPERATION("operation.invalid"), 
+    /* Motel */
+    USER_NOT_LANDLORD("Người dùng không phải là chủ nhà trọ"),
+    MOTEL_NOT_FOUND("Nhà trọ không tồn tại"), 
+    ROOM_NOT_FOUND("Phòng không tồn tại"),
     ;
-    private final String code;
+    private final String message;
 
-    ErrorCode(String code) {
-        this.code = code;
+    ErrorCode(String message) {
+        this.message = message;
     }
 
-    public String getCode() {
-        return code;
+    public String getMessage() {
+        return message;
     }
 }

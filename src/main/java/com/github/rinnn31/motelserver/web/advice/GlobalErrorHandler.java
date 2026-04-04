@@ -10,13 +10,13 @@ import com.github.rinnn31.motelserver.exception.AppError;
 public class GlobalErrorHandler {
     @ExceptionHandler(AppError.class)
     public ApiResponse<?> handleAppError(AppError ex) {
-        String translatedMessage = ex.getErrorCode().getCode();
-        return ApiResponse.error(ex.getErrorCode().name(), translatedMessage, ex.getExtraData());
+        String message = ex.getErrorCode().getMessage();
+        return ApiResponse.error(ex.getErrorCode().name(), message, ex.getExtraData());
     }
 
     @ExceptionHandler(Exception.class)
     public ApiResponse<Void> handleGenericException(Exception ex) {
         System.err.println("Unhandled exception: " + ex.getMessage());
-        return ApiResponse.error("internal_error", "An unexpected error occurred");
+        return ApiResponse.error("INTERNAL_ERROR", "Lỗi máy chủ, vui lòng thử lại sau");
     }
 }
