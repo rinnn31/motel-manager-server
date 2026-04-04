@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.github.rinnn31.motelserver.dto.authentication.AuthenticationResult;
-import com.github.rinnn31.motelserver.dto.authentication.LoginForm;
-import com.github.rinnn31.motelserver.dto.authentication.RegisterForm;
-import com.github.rinnn31.motelserver.dto.authentication.ResetPasswordForm;
-import com.github.rinnn31.motelserver.dto.authentication.TokenResult;
+import com.github.rinnn31.motelserver.dto.response.AuthenticationResponse;
+import com.github.rinnn31.motelserver.dto.response.TokenResponse;
+import com.github.rinnn31.motelserver.dto.request.LoginRequest;
+import com.github.rinnn31.motelserver.dto.request.RegisterRequest;
+import com.github.rinnn31.motelserver.dto.request.ResetPasswordRequest;
 import com.github.rinnn31.motelserver.security.UserExtractor;
 import com.github.rinnn31.motelserver.service.AuthenticationService;
 
@@ -34,17 +34,17 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public AuthenticationResult login(@Valid @RequestBody LoginForm body) {
+    public AuthenticationResponse login(@Valid @RequestBody LoginRequest body) {
         return authenticationService.login(body);
     }
 
     @PostMapping("/register")
-    public AuthenticationResult register(@Valid @RequestBody RegisterForm body) {
+    public AuthenticationResponse register(@Valid @RequestBody RegisterRequest body) {
         return authenticationService.register(body);
     }
 
     @PostMapping("/refresh")
-    public TokenResult refresh(@NotBlank @RequestParam String refreshToken) {
+    public TokenResponse refresh(@NotBlank @RequestParam String refreshToken) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
         return authenticationService.refresh(requesterId, refreshToken);
     }
@@ -56,7 +56,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/reset-password")
-    public void resetPassword(@Valid @RequestBody ResetPasswordForm resetPasswordModel) {
+    public void resetPassword(@Valid @RequestBody ResetPasswordRequest resetPasswordModel) {
         authenticationService.resetPassword(resetPasswordModel);
     }
 

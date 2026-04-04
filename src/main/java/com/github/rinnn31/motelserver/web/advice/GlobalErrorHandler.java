@@ -3,7 +3,7 @@ package com.github.rinnn31.motelserver.web.advice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.github.rinnn31.motelserver.dto.common.ApiResponse;
+import com.github.rinnn31.motelserver.dto.response.ApiResponse;
 import com.github.rinnn31.motelserver.exception.AppError;
 
 @RestControllerAdvice

@@ -1,9 +1,9 @@
-package com.github.rinnn31.motelserver.dto.account;
+package com.github.rinnn31.motelserver.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record ChangePasswordForm(
+public record ChangePasswordRequest(
     @NotBlank(message = "Mật khẩu cũ không được để trống")
     String oldPassword,
 

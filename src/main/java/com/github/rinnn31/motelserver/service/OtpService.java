@@ -8,7 +8,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import com.github.rinnn31.motelserver.config.properties.OtpProperties;
-import com.github.rinnn31.motelserver.dto.account.SendOtpResult;
+import com.github.rinnn31.motelserver.dto.response.SendOtpResponse;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.service.external.ISmsSender;
@@ -44,7 +44,7 @@ public class OtpService {
             long cooldown = redisTemplate.getExpire(cooldownKey);
             throw new AppError(
                 ErrorCode.OTP_NOT_READY, 
-                new SendOtpResult(false, otpProperties.maxAttemptsPerDay() - attempts, (int)cooldown));
+                new SendOtpResponse(false, otpProperties.maxAttemptsPerDay() - attempts, (int)cooldown));
         }
         if (attempts >= otpProperties.maxAttemptsPerDay()) {
             throw new AppError(ErrorCode.MAX_OTP_ATTEMPTS);

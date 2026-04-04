@@ -6,8 +6,8 @@ import java.util.UUID;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import com.github.rinnn31.motelserver.dto.account.UpdateProfileForm;
-import com.github.rinnn31.motelserver.dto.account.UserInfo;
+import com.github.rinnn31.motelserver.dto.response.UserInfoResponse;
+import com.github.rinnn31.motelserver.dto.request.UpdateProfileRequest;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.repository.UserRepository;
@@ -63,16 +63,16 @@ public class AccountService {
 
     }
 
-    public UserInfo getUserInfo(UUID userId, boolean includesPrivateInfo) {
+    public UserInfoResponse getUserInfo(UUID userId, boolean includesPrivateInfo) {
         var user = userRepository.findById(userId).orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
-        return new UserInfo(
+        return new UserInfoResponse(
             includesPrivateInfo ? user.getPhoneNumber() : null,
             user.getFullName(),
             user.getGender()
         );
     }
 
-    public void updateProfile(UUID userId, UpdateProfileForm input) {
+    public void updateProfile(UUID userId, UpdateProfileRequest input) {
         var user = userRepository.findById(userId).orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
         if (input.fullName() != null && !input.fullName().isBlank()) {
             user.setFullName(input.fullName());

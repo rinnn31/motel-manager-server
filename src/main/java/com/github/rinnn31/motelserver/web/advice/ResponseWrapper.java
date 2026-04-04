@@ -8,7 +8,7 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
-import com.github.rinnn31.motelserver.dto.common.ApiResponse;
+import com.github.rinnn31.motelserver.dto.response.ApiResponse;
 
 @RestControllerAdvice
 public class ResponseWrapper implements ResponseBodyAdvice<Object> {

@@ -1,8 +1,8 @@
-package com.github.rinnn31.motelserver.dto.account;
+package com.github.rinnn31.motelserver.dto.request;
 
 import org.hibernate.validator.constraints.Range;
 
-public record UpdateProfileForm(
+public record UpdateProfileRequest(
     String fullName,
 
     @Range(min = 0, max = 2, message = "Giới tính không hợp lệ")

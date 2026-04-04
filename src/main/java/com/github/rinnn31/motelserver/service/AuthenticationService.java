@@ -6,12 +6,12 @@ import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.github.rinnn31.motelserver.dto.account.UserInfo;
-import com.github.rinnn31.motelserver.dto.authentication.AuthenticationResult;
-import com.github.rinnn31.motelserver.dto.authentication.LoginForm;
-import com.github.rinnn31.motelserver.dto.authentication.RegisterForm;
-import com.github.rinnn31.motelserver.dto.authentication.ResetPasswordForm;
-import com.github.rinnn31.motelserver.dto.authentication.TokenResult;
+import com.github.rinnn31.motelserver.dto.response.UserInfoResponse;
+import com.github.rinnn31.motelserver.dto.response.AuthenticationResponse;
+import com.github.rinnn31.motelserver.dto.response.TokenResponse;
+import com.github.rinnn31.motelserver.dto.request.LoginRequest;
+import com.github.rinnn31.motelserver.dto.request.RegisterRequest;
+import com.github.rinnn31.motelserver.dto.request.ResetPasswordRequest;
 import com.github.rinnn31.motelserver.entity.User;
 import com.github.rinnn31.motelserver.entity.UserRole;
 import com.github.rinnn31.motelserver.exception.AppError;
@@ -37,7 +37,7 @@ public class AuthenticationService {
         this.sessionManagementService = sessionManagementService;
     }
 
-    public AuthenticationResult register(RegisterForm registerModel) {
+    public AuthenticationResponse register(RegisterRequest registerModel) {
         if (userRepository.existsByPhoneNumber(registerModel.phoneNumber())) {
             throw new AppError(ErrorCode.PHONE_NUMBER_USED);
         } 
@@ -51,16 +51,16 @@ public class AuthenticationService {
         userRepository.save(user);
 
         String[] tokens = sessionManagementService.createJwtSession(user.getId().toString());
-        return new AuthenticationResult(
+        return new AuthenticationResponse(
             tokens[0],
             tokens[1],
             user.getId().toString(),
             true,
-            UserInfo.fromEntity(user)
+            UserInfoResponse.fromEntity(user)
         );
     }
 
-    public AuthenticationResult login(LoginForm data) {
+    public AuthenticationResponse login(LoginRequest data) {
         var user = userRepository.findByPhoneNumber(data.phoneNumber())
                 .orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
 
@@ -70,25 +70,25 @@ public class AuthenticationService {
         if (!user.isVerified()) {
             throw new AppError(
                 ErrorCode.USER_NOT_VERIFIED, 
-                new AuthenticationResult(
+                new AuthenticationResponse(
                     null, 
                     null, 
                     user.getId().toString(), 
                     true, 
-                    UserInfo.fromEntity(user)));
+                    UserInfoResponse.fromEntity(user)));
         }
 
         String[] tokens = sessionManagementService.createJwtSession(user.getId().toString());
-        return new AuthenticationResult(
+        return new AuthenticationResponse(
             tokens[0],
             tokens[1],
             user.getId().toString(),
             false,
-            UserInfo.fromEntity(user)
+            UserInfoResponse.fromEntity(user)
         );
     }
     
-    public void resetPassword(ResetPasswordForm data) {
+    public void resetPassword(ResetPasswordRequest data) {
         var user = userRepository.findByPhoneNumber(data.phoneNumber())
             .orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
 
@@ -115,9 +115,9 @@ public class AuthenticationService {
         sessionManagementService.invalidateSession(refreshToken, userId.toString());
     }
 
-    public TokenResult refresh(UUID userId, String refreshToken) {
+    public TokenResponse refresh(UUID userId, String refreshToken) {
         String newAccessToken = sessionManagementService.refreshAccessToken(refreshToken, userId.toString());
-        return new TokenResult(newAccessToken, refreshToken);
+        return new TokenResponse(newAccessToken, refreshToken);
     }
 
     public void sendResetPasswordOtp(String phoneNumber, Locale locale) {

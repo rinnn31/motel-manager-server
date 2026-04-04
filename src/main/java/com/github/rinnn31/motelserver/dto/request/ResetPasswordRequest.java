@@ -1,9 +1,9 @@
-package com.github.rinnn31.motelserver.dto.authentication;
+package com.github.rinnn31.motelserver.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record ResetPasswordForm(
+public record ResetPasswordRequest(
     @NotBlank(message = "Số điện thoại không được để trống")
     String phoneNumber,
 
