@@ -10,6 +10,8 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -30,8 +32,11 @@ public class MotelCharge {
     @Column(name = "calculation_type")
     private CalculationType calculationType;
 
-    @Column(name = "custom_name")
-    private String customName;
+    private String description;
+
+    @ManyToOne
+    @JoinColumn(name = "motel_id", referencedColumnName = "id", nullable = false)
+    private Motel motel;
 
     public UUID getId() {
         return id;
@@ -65,12 +70,19 @@ public class MotelCharge {
         this.calculationType = calculationType;
     }
 
-    public String getCustomName() {
-        return customName;
+    public String getDescription() {
+        return description;
     }
 
-    public void setCustomName(String customName) {
-        this.customName = customName;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
+    public Motel getMotel() {
+        return motel;
+    }
+
+    public void setMotel(Motel motel) {
+        this.motel = motel;
+    }
 }

@@ -3,6 +3,7 @@ package com.github.rinnn31.motelserver.exception;
 public enum ErrorCode {
     /* Common */
     INVALID_OPERATION("Hành động không hợp lệ"),
+    INVALID_ID("ID không hợp lệ"),
     
     /* Authentication */
     PHONE_NUMBER_USED("Số điện thoại đã được sử dụng"),
@@ -26,6 +27,10 @@ public enum ErrorCode {
     USER_NOT_LANDLORD("Người dùng không phải là chủ nhà trọ"),
     MOTEL_NOT_FOUND("Nhà trọ không tồn tại"), 
     ROOM_NOT_FOUND("Phòng không tồn tại"),
+    MOTEL_HAS_MEMBERS("Không thể xóa nhà trọ khi vẫn còn thành viên"),
+    MOTEL_NAME_EXISTS("Tên nhà trọ đã tồn tại"),
+    ROOM_NUMBER_EXISTS("Số phòng đã tồn tại trong nhà trọ này"),
+    ROOM_HAS_MEMBERS("Không thể xóa phòng khi vẫn còn thành viên"),
     ;
     private final String message;
 
