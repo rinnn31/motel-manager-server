@@ -35,6 +35,12 @@ public class MotelController {
         return motelService.getMotelsOfUser(userId);
     }
 
+    @GetMapping("/joined")
+    public MotelInfoResponse getJoinedMotel() {
+        UUID userId = UserExtractor.extractUserIdFromContext();
+        return motelService.getJoinedMotelInfo(userId);
+    }
+
     @GetMapping("/{motelId}")
     public MotelInfoResponse getMotel(@PathVariable UUID motelId) {
         UUID userId = UserExtractor.extractUserIdFromContext();

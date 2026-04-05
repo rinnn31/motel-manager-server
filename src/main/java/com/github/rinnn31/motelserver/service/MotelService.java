@@ -38,6 +38,16 @@ public class MotelService {
         return new MotelInfoResponse(motel.getId().toString(), motel.getDisplayName(), memberCount);
     }
 
+    public MotelInfoResponse getJoinedMotelInfo(UUID userId) {
+        var motel = roomMemberRepository.findByUser_IdAndEndDateIsNull(userId).orElse(null);
+        if (motel == null) {
+            return null;
+        }
+
+        int memberCount = roomMemberRepository.countByRoom_Motel_IdAndEndDateIsNull(motel.getRoom().getMotel().getId());
+        return new MotelInfoResponse(motel.getRoom().getMotel().getId().toString(), motel.getRoom().getMotel().getDisplayName(), memberCount);
+    }
+
     public void addMotel(UUID ownerId, String displayName) {
         var user = userRepository.findById(ownerId)
                 .orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
