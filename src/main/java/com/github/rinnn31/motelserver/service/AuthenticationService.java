@@ -6,12 +6,12 @@ import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.github.rinnn31.motelserver.dto.response.UserInfoResponse;
-import com.github.rinnn31.motelserver.dto.response.AuthenticationResponse;
-import com.github.rinnn31.motelserver.dto.response.TokenResponse;
 import com.github.rinnn31.motelserver.dto.request.LoginRequest;
 import com.github.rinnn31.motelserver.dto.request.RegisterRequest;
 import com.github.rinnn31.motelserver.dto.request.ResetPasswordRequest;
+import com.github.rinnn31.motelserver.dto.response.AuthenticationResponse;
+import com.github.rinnn31.motelserver.dto.response.TokenResponse;
+import com.github.rinnn31.motelserver.dto.response.UserInfoResponse;
 import com.github.rinnn31.motelserver.entity.User;
 import com.github.rinnn31.motelserver.entity.UserRole;
 import com.github.rinnn31.motelserver.exception.AppError;
@@ -48,7 +48,7 @@ public class AuthenticationService {
         user.setGender(registerModel.gender());
         user.setPassword(passwordEncoder.encode(registerModel.password()));
         user.setRole(registerModel.role() == 0 ? UserRole.LANDLORD : UserRole.TENANT);
-        userRepository.save(user);
+        user = userRepository.save(user);
 
         String[] tokens = sessionManagementService.createJwtSession(user.getId().toString());
         return new AuthenticationResponse(
@@ -62,7 +62,7 @@ public class AuthenticationService {
 
     public AuthenticationResponse login(LoginRequest data) {
         var user = userRepository.findByPhoneNumber(data.phoneNumber())
-                .orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new AppError(ErrorCode.INVALID_CREDENTIALS));
 
         if (!passwordEncoder.matches(data.password(), user.getPassword())) {
             throw new AppError(ErrorCode.INVALID_CREDENTIALS);
