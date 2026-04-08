@@ -12,7 +12,7 @@ import jakarta.annotation.PostConstruct;
 
 @Service
 @ConditionalOnProperty(name = "sms.provider", havingValue = "twilio")
-public class TwilioSmsSender implements ISmsSender {
+public class TwilioSmsSender implements SmsSender {
     private final TwilioProperties properties;
 
     public TwilioSmsSender(TwilioProperties properties) {

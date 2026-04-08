@@ -11,11 +11,11 @@ import com.github.rinnn31.motelserver.config.properties.OtpProperties;
 import com.github.rinnn31.motelserver.dto.response.SendOtpResponse;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
-import com.github.rinnn31.motelserver.service.external.ISmsSender;
+import com.github.rinnn31.motelserver.service.external.SmsSender;
 
 @Service
 public class OtpService {
-    private final ISmsSender smsSender;
+    private final SmsSender smsSender;
 
     private final StringRedisTemplate redisTemplate;
 
@@ -25,7 +25,7 @@ public class OtpService {
 
     private final SecureRandom random = new SecureRandom();
     
-    public OtpService(ISmsSender smsSender, StringRedisTemplate redisTemplate, MessageSource messageSource, OtpProperties otpProperties) {
+    public OtpService(SmsSender smsSender, StringRedisTemplate redisTemplate, MessageSource messageSource, OtpProperties otpProperties) {
         this.smsSender = smsSender;
         this.redisTemplate = redisTemplate;
         this.messageSource = messageSource;
