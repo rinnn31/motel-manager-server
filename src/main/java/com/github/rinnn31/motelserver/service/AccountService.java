@@ -4,10 +4,11 @@ import java.util.Locale;
 import java.util.UUID;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.github.rinnn31.motelserver.dto.response.UserInfoResponse;
 import com.github.rinnn31.motelserver.dto.request.UpdateProfileRequest;
+import com.github.rinnn31.motelserver.dto.response.UserInfoResponse;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.repository.UserRepository;
@@ -16,32 +17,35 @@ import com.github.rinnn31.motelserver.repository.UserRepository;
 public class AccountService {
     public static final String VERIFY_CONTACTPOINT_ACTION = "contactpoint_verification";
 
+    public static final int PENDING_PHONE_CHANGE_TTL_MINUTES = 30;
+
     private final UserRepository userRepository;
 
     private final OtpService otpService;
 
     private final StringRedisTemplate redisTemplate;
 
-    public AccountService(UserRepository userRepository, OtpService otpService, StringRedisTemplate redisTemplate) {
+    private final PasswordEncoder passwordEncoder;
+
+    public AccountService(UserRepository userRepository, OtpService otpService, StringRedisTemplate redisTemplate, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.otpService = otpService;
         this.redisTemplate = redisTemplate;
-    }
-
-    public boolean isPhoneNumberInUse(String phoneNumber) {
-        return userRepository.existsByPhoneNumber(phoneNumber);
-    }
+        this.passwordEncoder = passwordEncoder;
+    }   
 
     public void deleteAccount(UUID userId) {
-        userRepository.deleteById(userId);
+        var user = userRepository.findById(userId).orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
+        userRepository.delete(user);
     }
 
     public void changePassword(UUID userId, String oldPassword, String newPassword) {
         var user = userRepository.findById(userId).orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
-        if (!user.getPassword().equals(oldPassword)) {
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new AppError(ErrorCode.OLD_PASSWORD_INCORRECT);
         }
-        user.setPassword(newPassword);
+
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
 
@@ -55,7 +59,7 @@ public class AccountService {
         // If the user has already verified their account,
         // we need to verify the new phone number before changing it
         if (user.isVerified()) {
-            redisTemplate.opsForValue().set("pending_phone_change:" + userId, newPhoneNumber, java.time.Duration.ofMinutes(10));
+            redisTemplate.opsForValue().set("pending_phone_change:" + userId, newPhoneNumber, java.time.Duration.ofMinutes(PENDING_PHONE_CHANGE_TTL_MINUTES));
         } else {
             user.setPhoneNumber(newPhoneNumber);
             userRepository.save(user);
@@ -68,7 +72,9 @@ public class AccountService {
         return new UserInfoResponse(
             includesPrivateInfo ? user.getPhoneNumber() : null,
             user.getFullName(),
-            user.getGender()
+            user.getGender(),
+            user.getRole().name(),
+            user.isVerified()
         );
     }
 
@@ -84,13 +90,17 @@ public class AccountService {
         userRepository.save(user);
     }
 
-    public void sendContactpointVerificationCode(String phoneNumber, Locale locale) {
-        var user = userRepository.findByPhoneNumber(phoneNumber)
+    public void sendContactpointVerificationCode(UUID userId, String phoneNumber, Locale locale) {
+        var user = userRepository.findById(userId)
             .orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
 
         if (user.isVerified()) {
             String pendingPhoneNumber = redisTemplate.opsForValue().get("pending_phone_change:" + user.getId().toString());
             if (pendingPhoneNumber == null || !pendingPhoneNumber.equals(phoneNumber)) {
+                throw new AppError(ErrorCode.INVALID_OPERATION);
+            }
+        } else {
+            if (!user.getPhoneNumber().equals(phoneNumber)) {
                 throw new AppError(ErrorCode.INVALID_OPERATION);
             }
         }
@@ -106,16 +116,16 @@ public class AccountService {
             if (pendingPhoneNumber == null || !pendingPhoneNumber.equals(phoneNumber)) {
                 throw new AppError(ErrorCode.INVALID_OPERATION);
             }
-            if (!otpService.verifyOtp(userId.toString(), phoneNumber, VERIFY_CONTACTPOINT_ACTION, otp, true)) {
-                throw new AppError(ErrorCode.VERIFY_FAILED);
-            }
         } else {
-            if (!otpService.verifyOtp(userId.toString(), phoneNumber, VERIFY_CONTACTPOINT_ACTION, otp, true)) {
-                throw new AppError(ErrorCode.VERIFY_FAILED);
+            if (!user.getPhoneNumber().equals(phoneNumber)) {
+                throw new AppError(ErrorCode.INVALID_OPERATION);
             }
-            user.setVerified(true);
+        }
+        if (!otpService.verifyOtp(userId.toString(), phoneNumber, VERIFY_CONTACTPOINT_ACTION, otp, true)) {
+            throw new AppError(ErrorCode.VERIFY_FAILED);
         }
 
+        user.setVerified(true);
         user.setPhoneNumber(phoneNumber);
         userRepository.save(user);
     }
