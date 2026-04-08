@@ -5,13 +5,17 @@ import com.github.rinnn31.motelserver.entity.User;
 public record UserInfoResponse(
     String phoneNumber,
     String fullName,
-    int gender
+    int gender,
+    String role,
+    boolean isVerified
 ) {  
-    public static UserInfoResponse fromEntity(User user) {
-        return new UserInfoResponse(
+    public UserInfoResponse(User user) {
+        this(
             user.getPhoneNumber(),
             user.getFullName(),
-            user.getGender()
+            user.getGender(),
+            user.getRole().name(),
+            user.isVerified()
         );
     }
 }

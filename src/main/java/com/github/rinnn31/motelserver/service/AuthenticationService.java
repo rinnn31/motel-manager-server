@@ -48,15 +48,15 @@ public class AuthenticationService {
         user.setGender(registerModel.gender());
         user.setPassword(passwordEncoder.encode(registerModel.password()));
         user.setRole(registerModel.role() == 0 ? UserRole.LANDLORD : UserRole.TENANT);
-        user = userRepository.save(user);
+        user.setVerified(false);
+        userRepository.save(user);
 
         String[] tokens = sessionManagementService.createJwtSession(user.getId().toString());
         return new AuthenticationResponse(
             tokens[0],
             tokens[1],
             user.getId().toString(),
-            true,
-            UserInfoResponse.fromEntity(user)
+            new UserInfoResponse(user)
         );
     }
 
@@ -67,24 +67,13 @@ public class AuthenticationService {
         if (!passwordEncoder.matches(data.password(), user.getPassword())) {
             throw new AppError(ErrorCode.INVALID_CREDENTIALS);
         }
-        if (!user.isVerified()) {
-            throw new AppError(
-                ErrorCode.USER_NOT_VERIFIED, 
-                new AuthenticationResponse(
-                    null, 
-                    null, 
-                    user.getId().toString(), 
-                    true, 
-                    UserInfoResponse.fromEntity(user)));
-        }
 
         String[] tokens = sessionManagementService.createJwtSession(user.getId().toString());
         return new AuthenticationResponse(
             tokens[0],
             tokens[1],
             user.getId().toString(),
-            false,
-            UserInfoResponse.fromEntity(user)
+            new UserInfoResponse(user)
         );
     }
     

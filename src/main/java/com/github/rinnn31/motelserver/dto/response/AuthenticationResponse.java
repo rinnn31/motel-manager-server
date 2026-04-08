@@ -7,7 +7,6 @@ public record AuthenticationResponse(
     String accessToken,
     String refreshToken,
     String userId,
-    Boolean verificationRequired,
     UserInfoResponse userInfo
 ) {
 }
