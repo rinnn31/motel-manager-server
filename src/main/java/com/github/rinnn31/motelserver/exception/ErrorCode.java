@@ -4,7 +4,8 @@ public enum ErrorCode {
     /* Common */
     INVALID_OPERATION("Hành động không hợp lệ"),
     INVALID_ID("ID không hợp lệ"),
-    
+    INVALID_DATE_RANGE("Khoảng thời gian không hợp lệ"), 
+
     /* Authentication */
     PHONE_NUMBER_USED("Số điện thoại đã được sử dụng"),
     USER_NOT_VERIFIED("Tài khoản chưa được xác thực"),
@@ -30,7 +31,8 @@ public enum ErrorCode {
     MOTEL_HAS_MEMBERS("Không thể xóa nhà trọ khi vẫn còn thành viên"),
     MOTEL_NAME_EXISTS("Tên nhà trọ đã tồn tại"),
     ROOM_NUMBER_EXISTS("Số phòng đã tồn tại trong nhà trọ này"),
-    ROOM_HAS_MEMBERS("Không thể xóa phòng khi vẫn còn thành viên"),
+    ROOM_HAS_MEMBERS("Không thể xóa phòng khi vẫn còn thành viên"), 
+    INVOICE_NOT_FOUND("Hóa đơn không tồn tại"),
     ;
     private final String message;
 
@@ -42,3 +44,4 @@ public enum ErrorCode {
         return message;
     }
 }
+

@@ -31,7 +31,10 @@ public class InvoiceDetails {
     private int unitPrice;
 
     @Column(nullable = false)
-    private int quantity;
+    private int amount;
+
+    @Column(name = "calculation_type", nullable = false)
+    private String calculationType;
 
     public UUID getId() {
         return id;
@@ -40,4 +43,45 @@ public class InvoiceDetails {
     public void setId(UUID id) {
         this.id = id;
     }
+
+    public Invoice getInvoice() {
+        return invoice;
+    }
+
+    public void setInvoice(Invoice invoice) {
+        this.invoice = invoice;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(int unitPrice) {
+        this.unitPrice = unitPrice;
+    }
+
+    public int getAmount() {
+        return amount;
+    }
+
+    public void setAmount(int amount) {
+        this.amount = amount;
+    }
+
+    public String getCalculationType() {
+        return calculationType;
+    }
+
+    public void setCalculationType(String calculationType) {
+        this.calculationType = calculationType;
+    }
 }
+

@@ -1,5 +1,7 @@
 package com.github.rinnn31.motelserver.entity;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
@@ -25,9 +27,13 @@ public class Invoice {
     private Room room;
 
     @OneToMany(mappedBy = "invoice")
-    private java.util.List<InvoiceDetails> details;
+    private List<InvoiceDetails> details;
 
     private boolean paid = false;
+
+    private Instant createdAt;
+
+    private Instant paidAt;
 
     public Room getRoom() {
         return room;
@@ -45,11 +51,11 @@ public class Invoice {
         this.id = id;
     }
 
-    public java.util.List<InvoiceDetails> getDetails() {
+    public List<InvoiceDetails> getDetails() {
         return details;
     }
 
-    public void setDetails(java.util.List<InvoiceDetails> details) {
+    public void setDetails(List<InvoiceDetails> details) {
         this.details = details;
     }
 
@@ -60,4 +66,21 @@ public class Invoice {
     public void setPaid(boolean paid) {
         this.paid = paid;
     }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getPaidAt() {
+        return paidAt;
+    }
+
+    public void setPaidAt(Instant paidAt) {
+        this.paidAt = paidAt;
+    }
+
 }

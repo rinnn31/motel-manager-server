@@ -1,6 +1,6 @@
 package com.github.rinnn31.motelserver.entity;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
@@ -25,9 +25,9 @@ public class RoomMember {
     @JoinColumn(name = "room_id", referencedColumnName = "id", nullable = false)
     private Room room;
 
-    private Date startDate;
+    private LocalDate startDate;
 
-    private Date endDate;
+    private LocalDate endDate;
 
     public UUID getId() {
         return id;
@@ -52,19 +52,19 @@ public class RoomMember {
         this.room = room;
     }
 
-    public Date getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(LocalDate startDate) {
         this.startDate = startDate;
     }
 
-    public Date getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
     }
 }
