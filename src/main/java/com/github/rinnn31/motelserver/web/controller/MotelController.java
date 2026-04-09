@@ -62,6 +62,6 @@ public class MotelController {
     @PatchMapping("/{motelId}/name")
     public void updateMotelName(@PathVariable UUID motelId, @Valid @RequestBody UpdateMotelNameRequest request) {
         UUID userId = UserExtractor.extractUserIdFromContext();
-        motelService.updateMotel(motelId, userId, request.newName());
+        motelService.updateMotelName(motelId, userId, request.newName());
     }
 }

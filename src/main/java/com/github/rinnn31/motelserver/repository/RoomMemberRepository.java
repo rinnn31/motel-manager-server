@@ -27,6 +27,8 @@ public interface RoomMemberRepository extends JpaRepository<RoomMember, UUID> {
 
     boolean existsByUser_IdAndRoom_IdAndEndDateIsNull(UUID userId, UUID roomId);
 
+    boolean existsByRoom_Motel_IdAndUser_IdAndEndDateIsNull(UUID motelId, UUID userId);
+
     Optional<RoomMember> findByUser_IdAndRoom_IdAndEndDateIsNull(UUID userId, UUID roomId);
 
     Optional<RoomMember> findByUser_IdAndEndDateIsNull(UUID userId);

@@ -31,21 +31,26 @@ public class MotelService {
     public MotelInfoResponse getMotelInfo(UUID motelId, UUID requesterId) {
         var motel = motelRepository.findById(motelId)
                 .orElseThrow(() -> new AppError(ErrorCode.MOTEL_NOT_FOUND));
-        if (!motel.getOwner().getId().equals(requesterId) && !roomMemberRepository.existsByRoom_Motel_IdAndEndDateIsNull(motelId)) {
+        if (!motel.getOwner().getId().equals(requesterId) && !roomMemberRepository.existsByRoom_Motel_IdAndUser_IdAndEndDateIsNull(motelId, requesterId)) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
+        
         int memberCount = roomMemberRepository.countByRoom_Motel_IdAndEndDateIsNull(motelId);
         return new MotelInfoResponse(motel.getId().toString(), motel.getDisplayName(), memberCount);
     }
 
     public MotelInfoResponse getJoinedMotelInfo(UUID userId) {
-        var motel = roomMemberRepository.findByUser_IdAndEndDateIsNull(userId).orElse(null);
-        if (motel == null) {
+        var roomMember = roomMemberRepository.findByUser_IdAndEndDateIsNull(userId).orElse(null);
+        if (roomMember == null) {
             return null;
         }
 
-        int memberCount = roomMemberRepository.countByRoom_Motel_IdAndEndDateIsNull(motel.getRoom().getMotel().getId());
-        return new MotelInfoResponse(motel.getRoom().getMotel().getId().toString(), motel.getRoom().getMotel().getDisplayName(), memberCount);
+        int memberCount = roomMemberRepository.countByRoom_Motel_IdAndEndDateIsNull(roomMember.getRoom().getMotel().getId());
+        return new MotelInfoResponse(
+            roomMember.getRoom().getMotel().getId().toString(), 
+            roomMember.getRoom().getMotel().getDisplayName(), 
+            memberCount
+        );
     }
 
     public void addMotel(UUID ownerId, String displayName) {
@@ -75,7 +80,7 @@ public class MotelService {
         motelRepository.delete(motel);
     }
 
-    public void updateMotel(UUID motelId, UUID ownerId, String newDisplayName) {
+    public void updateMotelName(UUID motelId, UUID ownerId, String newDisplayName) {
         var motel = motelRepository.findById(motelId)
                 .orElseThrow(() -> new AppError(ErrorCode.MOTEL_NOT_FOUND));
         if (!motel.getOwner().getId().equals(ownerId)) {
