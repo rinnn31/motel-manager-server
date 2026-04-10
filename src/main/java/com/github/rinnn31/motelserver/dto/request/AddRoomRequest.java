@@ -12,7 +12,7 @@ public record AddRoomRequest(
     String roomNumber,
 
     @PositiveOrZero(message = "Giá phòng không được là số âm")
-    int price,
+    Integer price,
 
     @NotBlank(message = "ID nhà trọ không được để trống")
     @UUID(message = "ID nhà trọ không hợp lệ")

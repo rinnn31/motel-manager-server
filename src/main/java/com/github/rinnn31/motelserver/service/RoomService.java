@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.github.rinnn31.motelserver.dto.request.AddRoomRequest;
 import com.github.rinnn31.motelserver.dto.response.RoomInfoResponse;
+import com.github.rinnn31.motelserver.dto.response.UserInfoResponse;
 import com.github.rinnn31.motelserver.entity.Motel;
 import com.github.rinnn31.motelserver.entity.Room;
 import com.github.rinnn31.motelserver.entity.RoomMember;
@@ -166,5 +167,30 @@ public class RoomService {
                 .orElseThrow(() -> new AppError(ErrorCode.INVALID_OPERATION));
         member.setEndDate(LocalDate.now());
         roomMemberRepository.save(member);
+    }
+
+    public List<UserInfoResponse> getRoomMembers(UUID requesterId, UUID roomId) {
+        var room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new AppError(ErrorCode.ROOM_NOT_FOUND));
+        var motel = room.getMotel();
+
+        boolean isOwner = motel.getOwner().getId().equals(requesterId);
+        boolean isRoomMember = roomMemberRepository.existsByUser_IdAndRoom_IdAndEndDateIsNull(requesterId, roomId);
+
+        if (!isOwner && !isRoomMember) {
+            throw new AppError(ErrorCode.INVALID_OPERATION);
+        }
+
+        var members = roomMemberRepository.findByRoom_IdAndEndDateIsNull(roomId);
+        return members.stream().map(member -> {
+            var user = member.getUser();
+            return new UserInfoResponse(
+                user.getPhoneNumber(),
+                user.getFullName(),
+                user.getGender(),
+                user.getRole().name(),
+                null
+            );
+        }).toList();
     }
 }

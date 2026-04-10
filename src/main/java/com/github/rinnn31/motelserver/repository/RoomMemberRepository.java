@@ -11,7 +11,7 @@ import com.github.rinnn31.motelserver.entity.RoomMember;
 
 @Repository
 public interface RoomMemberRepository extends JpaRepository<RoomMember, UUID> {
-    List<RoomMember> findByRoom_Id(UUID roomId);
+    List<RoomMember> findByRoom_IdAndEndDateIsNull(UUID roomId);
 
     List<RoomMember> findByRoom_Motel_Id(UUID motelId);
 
