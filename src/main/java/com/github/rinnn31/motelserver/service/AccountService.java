@@ -74,7 +74,7 @@ public class AccountService {
             user.getFullName(),
             user.getGender(),
             user.getRole().name(),
-            user.isVerified()
+            includesPrivateInfo ? user.isVerified() : null
         );
     }
 

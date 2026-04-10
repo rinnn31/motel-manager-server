@@ -58,6 +58,9 @@ public class MotelService {
                 .orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
         if (!UserRole.LANDLORD.equals(user.getRole())) {
             throw new AppError(ErrorCode.USER_NOT_LANDLORD);
+        }   
+        if (motelRepository.existsByOwner_IdAndDisplayName(ownerId, displayName)) {
+            throw new AppError(ErrorCode.MOTEL_NAME_EXISTS);
         }
 
         var motel = new Motel();
