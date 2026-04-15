@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record InvoiceInfoResponse(
+    String id,
     Long createdAt,
     Long paidAt,
     Boolean isPaid,

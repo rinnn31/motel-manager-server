@@ -65,6 +65,7 @@ public class InvoiceService {
                         detail.getCalculationType()
                     )).toList();
                 return new InvoiceInfoResponse(
+                    invoice.getId().toString(),
                     invoice.getCreatedAt().toEpochMilli(),
                     invoice.getPaidAt() != null ? invoice.getPaidAt().toEpochMilli() : null,
                     invoice.isPaid(),
