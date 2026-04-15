@@ -1,5 +1,6 @@
 package com.github.rinnn31.motelserver.web.advice;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -12,26 +13,27 @@ import jakarta.validation.ConstraintViolationException;
 @RestControllerAdvice
 public class GlobalErrorHandler {
     @ExceptionHandler(AppError.class)
-    public ApiResponse<?> handleAppError(AppError ex) {
-        String message = ex.getErrorCode().getMessage();
-        return ApiResponse.error(ex.getErrorCode().name(), message, ex.getExtraData());
+    public ResponseEntity<ApiResponse<?>> handleAppError(AppError ex) {
+        return ResponseEntity.status(ex.getErrorCode().getHttpStatus())
+            .body(ApiResponse.error(ex.getErrorCode().name(), ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
-    public ApiResponse<Void> handleGenericException(Exception ex) {
+    public ResponseEntity<ApiResponse<?>> handleGenericException(Exception ex) {
         System.err.println("Unhandled exception: " + ex.getMessage());
-        return ApiResponse.error("INTERNAL_ERROR", "Lỗi máy chủ, vui lòng thử lại sau");
+        return ResponseEntity.status(500).body(ApiResponse.error("INTERNAL_SERVER_ERROR", "Đã có lỗi xảy ra, vui lòng thử lại sau"));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ApiResponse<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<?>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         var fieldError = ex.getFieldError();
-        return ApiResponse.error("VALIDATION_ERROR", fieldError != null ? fieldError.getDefaultMessage() : "Dữ liệu không hợp lệ");
+        String errorMessage = fieldError != null ? fieldError.getDefaultMessage() : "Dữ liệu không hợp lệ";
+        return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", errorMessage));    
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ApiResponse<?> handleConstraintViolationException(ConstraintViolationException ex) {
+    public ResponseEntity<ApiResponse<?>> handleConstraintViolationException(ConstraintViolationException ex) {
         var violation = ex.getConstraintViolations().iterator().next();
-        return ApiResponse.error("VALIDATION_ERROR", violation.getMessage());
+        return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", violation.getMessage()));
     }
 }
