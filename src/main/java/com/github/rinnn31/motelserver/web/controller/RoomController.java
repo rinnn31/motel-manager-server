@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.github.rinnn31.motelserver.dto.request.AddRoomRequest;
 import com.github.rinnn31.motelserver.dto.response.RoomInfoResponse;
-import com.github.rinnn31.motelserver.dto.response.UserInfoResponse;
+import com.github.rinnn31.motelserver.dto.response.RoomMemberResponse;
 import com.github.rinnn31.motelserver.security.UserExtractor;
 import com.github.rinnn31.motelserver.service.RoomService;
 
@@ -40,6 +40,12 @@ public class RoomController {
     public RoomInfoResponse getRoom(@PathVariable UUID roomId) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
         return roomService.getRoomInfo(requesterId, roomId);
+    }
+
+    @GetMapping("/joined")
+    public RoomInfoResponse getJoinedRoom() {
+        UUID requesterId = UserExtractor.extractUserIdFromContext();
+        return roomService.getJoinedRoomInfo(requesterId);
     }
 
     @PostMapping
@@ -79,7 +85,7 @@ public class RoomController {
     }
 
     @GetMapping("/{roomId}/members")
-    public List<UserInfoResponse> getRoomMembers(@PathVariable UUID roomId) {
+    public List<RoomMemberResponse> getRoomMembers(@PathVariable UUID roomId) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
         return roomService.getRoomMembers(requesterId, roomId);
     }

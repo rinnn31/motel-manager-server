@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.github.rinnn31.motelserver.dto.request.AddRoomRequest;
 import com.github.rinnn31.motelserver.dto.response.RoomInfoResponse;
-import com.github.rinnn31.motelserver.dto.response.UserInfoResponse;
+import com.github.rinnn31.motelserver.dto.response.RoomMemberResponse;
 import com.github.rinnn31.motelserver.entity.Motel;
 import com.github.rinnn31.motelserver.entity.Room;
 import com.github.rinnn31.motelserver.entity.RoomMember;
@@ -42,10 +42,9 @@ public class RoomService {
         var motel = room.getMotel();
 
         boolean isOwner = motel.getOwner().getId().equals(requesterId);
-        boolean isMotelMember = roomMemberRepository.existsByRoom_Motel_IdAndUser_IdAndEndDateIsNull(motel.getId(), requesterId);
         boolean isRoomMember = roomMemberRepository.existsByUser_IdAndRoom_IdAndEndDateIsNull(requesterId, roomId);
 
-        if (!isOwner && !isMotelMember && !isRoomMember) {
+        if (!isOwner && !isRoomMember) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
         Integer memberCount = isOwner || isRoomMember ? roomMemberRepository.countByRoom_IdAndEndDateIsNull(roomId) : null;
@@ -78,6 +77,18 @@ public class RoomService {
                 memberCount
             );
         }).toList();
+    }
+
+    public RoomInfoResponse getJoinedRoomInfo(UUID requesterId) {
+        var member = roomMemberRepository.findByUser_IdAndEndDateIsNull(requesterId)
+                .orElseThrow(() -> new AppError(ErrorCode.ROOM_NOT_FOUND));
+        var room = member.getRoom();
+        return new RoomInfoResponse(
+            room.getId().toString(),
+            room.getRoomNumber(),
+            room.getPrice(),
+            room.getMembers().size()
+        );
     }
 
     private Motel checkOwnershipAndGetMotel(UUID motelId, UUID ownerId) {
@@ -169,7 +180,7 @@ public class RoomService {
         roomMemberRepository.save(member);
     }
 
-    public List<UserInfoResponse> getRoomMembers(UUID requesterId, UUID roomId) {
+    public List<RoomMemberResponse> getRoomMembers(UUID requesterId, UUID roomId) {
         var room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new AppError(ErrorCode.ROOM_NOT_FOUND));
         var motel = room.getMotel();
@@ -184,12 +195,11 @@ public class RoomService {
         var members = roomMemberRepository.findByRoom_IdAndEndDateIsNull(roomId);
         return members.stream().map(member -> {
             var user = member.getUser();
-            return new UserInfoResponse(
-                user.getPhoneNumber(),
+            return new RoomMemberResponse(
+                user.getId().toString(),
                 user.getFullName(),
-                user.getGender(),
-                user.getRole().name(),
-                null
+                user.getPhoneNumber(),
+                member.getStartDate()
             );
         }).toList();
     }
