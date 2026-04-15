@@ -5,6 +5,8 @@ public enum ErrorCode {
     INVALID_OPERATION("Hành động không hợp lệ"),
     INVALID_ID("ID không hợp lệ"),
     INVALID_DATE_RANGE("Khoảng thời gian không hợp lệ"), 
+    INVALID_FILE_TYPE("Định dạng tệp không hợp lệ"),
+    FILE_UPLOAD_FAILED("Tải tệp thất bại"),
 
     /* Authentication */
     PHONE_NUMBER_USED("Số điện thoại đã được sử dụng"),
@@ -33,6 +35,7 @@ public enum ErrorCode {
     ROOM_NUMBER_EXISTS("Số phòng đã tồn tại trong nhà trọ này"),
     ROOM_HAS_MEMBERS("Không thể xóa phòng khi vẫn còn thành viên"), 
     INVOICE_NOT_FOUND("Hóa đơn không tồn tại"),
+    ROOM_NOT_SAME_MOTEL("Các phòng phải thuộc cùng một nhà trọ")
     ;
     private final String message;
 

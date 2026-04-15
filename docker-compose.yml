@@ -18,6 +18,10 @@ services:
       - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
       - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
       - TWILIO_FROM_NUMBER=${TWILIO_FROM_NUMBER}
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER}
+      - LOCAL_STORAGE_BASE_DIRECTORY=./storage
+    volumes:
+      - ./storage:/app/storage
       
   database:
     image: mysql:8.0
@@ -39,3 +43,4 @@ services:
 
 volumes:
   db_data:
+  storage:

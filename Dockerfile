@@ -16,6 +16,7 @@ RUN java -Djarmode=layertools -jar app.jar extract
 
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
+RUN mkdir -p /app/storage
 
 COPY --from=extract /build/dependencies/ ./
 COPY --from=extract /build/spring-boot-loader/ ./

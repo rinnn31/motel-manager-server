@@ -10,10 +10,15 @@ spring:
     test-while-idle: true
     test-on-borrow: true
     validation-query: SELECT 1
+  sql:
+    init:
+      mode: always
+      platform: mysql
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     show-sql: false
+    defer-datasource-initialization: true
     properties:
       hibernate:
         format_sql: true
@@ -41,3 +46,7 @@ otp:
   expiration-minutes: 60
   max-attempts-per-day: 10
   resend-cooldown-seconds: 60
+storage:
+  local:
+    base-directory: ${LOCAL_STORAGE_BASE_DIRECTORY:./storage}
+  provider: ${STORAGE_PROVIDER:local}

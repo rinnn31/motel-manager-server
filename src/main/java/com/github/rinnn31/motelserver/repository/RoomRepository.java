@@ -13,4 +13,8 @@ public interface RoomRepository extends JpaRepository<Room, UUID> {
     boolean existsByMotel_IdAndRoomNumber(UUID motelId, String roomNumber);
 
     List<Room> findByMotel_Id(UUID motelId);
+
+    int countDistinctMotelByIdIn(List<UUID> roomIds);
+
+    List<Room> findByIdIn(List<UUID> roomIds);
 }
