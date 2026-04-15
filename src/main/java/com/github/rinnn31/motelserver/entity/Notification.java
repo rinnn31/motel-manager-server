@@ -11,16 +11,18 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "notification_users")
+@Table(name = "notifications")
 public class Notification {
     @Id
     @GeneratedValue
     @UuidGenerator
     private UUID id;
 
+    @ManyToOne
     @JoinColumn(name = "target_user_id", referencedColumnName = "id")
     private User targetUser;
 
@@ -30,7 +32,8 @@ public class Notification {
     @Column(name = "reference_id")
     private UUID referenceId;
 
-    private boolean read = false;
+    @Column(nullable = false, name = "is_read")
+    private boolean isRead = false;
 
     @Enumerated(EnumType.STRING)
     private NotificationType type;
@@ -60,11 +63,11 @@ public class Notification {
     }
 
     public boolean isRead() {
-        return read;
+        return isRead;
     }
 
-    public void setRead(boolean read) {
-        this.read = read;
+    public void setRead(boolean isRead) {
+        this.isRead = isRead;
     }
 
     public NotificationType getType() {
