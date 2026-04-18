@@ -34,14 +34,9 @@ security:
 
 sms:
   provider: ${SMS_PROVIDER}
-  twilio:
-    account-sid: ${TWILIO_ACCOUNT_SID}
-    auth-token: ${TWILIO_AUTH_TOKEN}
-    from-number: ${TWILIO_FROM_NUMBER}
-  esms:
-    api-key: ${ESMS_API_KEY}
-    api-secret: ${ESMS_API_SECRET}
-    brand-name: ${ESMS_BRAND_NAME}
+  infobip:
+    api-key: ${INFOBIP_API_KEY}
+    base-url: ${INFOBIP_BASE_URL}
 otp:
   expiration-minutes: 60
   max-attempts-per-day: 10

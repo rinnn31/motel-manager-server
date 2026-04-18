@@ -59,6 +59,12 @@ public class AccountController {
         accountService.deleteAccount(requesterId);
     }
 
+    @PostMapping("/me/send-contactpoint-otp")
+    public void sendContactpointVerificationOtp(@RequestParam String phoneNumber) {
+        UUID requesterId = UserExtractor.extractUserIdFromContext();
+        accountService.sendContactpointVerificationCode(requesterId, phoneNumber, null);
+    }
+
     @PostMapping("/me/verify-contactpoint")
     public void verifyContactpoint(@Valid @RequestBody VerifyContactpointRequest input) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();

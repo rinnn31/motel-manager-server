@@ -18,7 +18,7 @@ import jakarta.annotation.PostConstruct;
 
 @Component
 @ConditionalOnProperty(name = "sms.provider", havingValue = "infobip")
-public class InfoBipSmsSender {
+public class InfoBipSmsSender implements SmsSender {
     private final InfoBipProperties properties;
 
     private ApiClient apiClient;

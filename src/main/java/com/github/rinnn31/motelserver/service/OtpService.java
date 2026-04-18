@@ -82,6 +82,7 @@ public class OtpService {
     }
 
     private String createMessage(String action, String otp, Locale locale) {
-        return messageSource.getMessage("otp.message", new Object[]{action, otp}, locale);
+        return "Mã OTP của bạn là: " + otp;
+         //messageSource.getMessage("otp.message." + action, new Object[]{otp}, locale);
     }
 }
