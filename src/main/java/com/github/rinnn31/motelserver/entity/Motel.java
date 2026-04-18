@@ -19,7 +19,7 @@ import jakarta.persistence.Table;
 @Table(
     name = "motels",
     indexes = {
-        @Index(name = "idx_motel_owner", columnList = "owner_id")
+        @Index(name = "idx_owner_id_display_name", columnList = "owner_id, display_name"),
     }
 )
 public class Motel {
@@ -28,7 +28,7 @@ public class Motel {
     @UuidGenerator
     private UUID id;
 
-    @Column(nullable = false, name = "display_name")
+    @Column(nullable = false, name = "display_name", length = 50)
     private String displayName;
     
     @ManyToOne

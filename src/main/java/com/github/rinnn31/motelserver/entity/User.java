@@ -10,19 +10,26 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "users")
+@Table(
+    name = "users",
+    indexes = {
+        @Index(name = "idx_phone_number", columnList = "phone_number")
+    }
+)
 public class User {
     @Id
     @GeneratedValue
     @UuidGenerator
     private UUID id;
 
+    @Column(name = "full_name", length = 50)
     private String fullName;
 
-    @Column(unique = true)
+    @Column(unique = true, name = "phone_number", length = 15)
     private String phoneNumber;
 
     private int gender;

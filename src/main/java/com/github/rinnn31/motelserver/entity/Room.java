@@ -9,20 +9,26 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "rooms")
+@Table(
+    name = "rooms",
+    indexes = {
+        @Index(name = "idx_motel_id_room_number", columnList = "motel_id, room_number")
+    }
+)
 public class Room {
     @Id
     @GeneratedValue
     @UuidGenerator
     private UUID id;
 
-    @Column(nullable = false, name = "room_number")
+    @Column(nullable = false, name = "room_number", length = 10)
     private String roomNumber;
 
     @ManyToOne

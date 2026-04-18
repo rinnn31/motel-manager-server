@@ -24,7 +24,7 @@ public class InvoiceDetails {
     @JoinColumn(name = "invoice_id", nullable = false)
     private Invoice invoice;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private String name;
 
     @Column(name = "unit_price", nullable = false)

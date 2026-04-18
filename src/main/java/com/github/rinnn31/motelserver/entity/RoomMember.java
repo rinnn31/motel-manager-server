@@ -5,15 +5,23 @@ import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "room_members")
+@Table(
+    name = "room_members",
+    indexes = {
+        @Index(name = "idx_room_id_end_date", columnList = "room_id, end_date"),
+        @Index(name = "idx_user_id_end_date", columnList = "user_id, end_date")
+    }
+)
 public class RoomMember {
     @Id
     @GeneratedValue
@@ -28,8 +36,10 @@ public class RoomMember {
     @JoinColumn(name = "room_id", referencedColumnName = "id", nullable = false)
     private Room room;
 
+    @Column(name = "start_date")
     private LocalDate startDate;
 
+    @Column(name = "end_date")
     private LocalDate endDate;
 
     public UUID getId() {

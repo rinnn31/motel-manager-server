@@ -10,12 +10,18 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "message_recipients")
+@Table(
+    name = "message_recipients",
+    indexes = {
+        @Index(name = "idx_recipient_id_object_type", columnList = "recipient_id, object_type")
+    }
+)
 public class MessageRecipient {
     @Id
     @GeneratedValue

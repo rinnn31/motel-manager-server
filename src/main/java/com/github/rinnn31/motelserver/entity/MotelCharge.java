@@ -10,12 +10,18 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "motel_charges")
+@Table(
+    name = "motel_charges",
+    indexes = {
+        @Index(name = "idx_motel_id_type", columnList = "motel_id, type")
+    }
+)
 public class MotelCharge {
     @Id
     @GeneratedValue
@@ -32,6 +38,7 @@ public class MotelCharge {
     @Column(name = "calculation_type")
     private CalculationType calculationType;
 
+    @Column(length = 20)
     private String description;
 
     @ManyToOne

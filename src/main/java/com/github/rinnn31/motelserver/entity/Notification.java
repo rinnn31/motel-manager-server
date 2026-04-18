@@ -1,5 +1,6 @@
 package com.github.rinnn31.motelserver.entity;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
@@ -10,12 +11,18 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "notifications")
+@Table(
+    name = "notifications",
+    indexes = {
+        @Index(name = "idx_user_id", columnList = "user_id")
+    }
+)
 public class Notification {
     @Id
     @GeneratedValue
@@ -23,8 +30,8 @@ public class Notification {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "target_user_id", referencedColumnName = "id")
-    private User targetUser;
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private User user;
 
     @Column(nullable = false)
     private String title;
@@ -38,6 +45,9 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     private NotificationType type;
 
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
     public UUID getId() {
         return id;
     }
@@ -46,12 +56,12 @@ public class Notification {
         this.id = id;
     }
 
-    public User getTargetUser() {
-        return targetUser;
+    public User getUser() {
+        return user;
     }
 
-    public void setTargetUser(User targetUser) {
-        this.targetUser = targetUser;
+    public void setUser(User targetUser) {
+        this.user = targetUser;
     }
 
     public UUID getReferenceId() {
@@ -84,5 +94,13 @@ public class Notification {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 }

@@ -12,18 +12,24 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "messages")
+@Table(
+    name = "messages",
+    indexes = {
+        @Index(name = "idx_sender_id_object_type", columnList = "sender_id, object_type")
+    }
+)
 public class Message {
     @Id
     @GeneratedValue
     @UuidGenerator
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private String title;
 
     @Column(nullable = false, columnDefinition="TEXT")    

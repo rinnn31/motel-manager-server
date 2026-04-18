@@ -14,5 +14,5 @@ public interface MotelRepository extends JpaRepository<Motel, UUID> {
 
     boolean existsByOwner_IdAndDisplayName(UUID ownerId, String displayName);
 
-    boolean existsByOwner_IdAndId(UUID requesterId, UUID motelId);
+    boolean existsByIdAndOwner_Id(UUID motelId, UUID ownerId);
 }
