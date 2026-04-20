@@ -157,7 +157,7 @@ public class MessageService {
     }
 
     public List<MessageInfoResponse> getMessagesForMotel(UUID requesterId, UUID motelId, String box) {
-        if (!motelRepository.existsByOwner_IdAndId(requesterId, motelId)) {
+        if (!motelRepository.existsByIdAndOwner_Id(motelId, requesterId)) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
 

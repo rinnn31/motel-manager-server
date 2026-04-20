@@ -45,8 +45,7 @@ public class AuthenticationController {
 
     @PostMapping("/refresh")
     public TokenResponse refresh(@NotBlank @RequestParam String refreshToken) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        return authenticationService.refresh(requesterId, refreshToken);
+        return authenticationService.refresh(refreshToken);
     }
 
     @PostMapping("/logout")

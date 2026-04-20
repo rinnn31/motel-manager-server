@@ -4,8 +4,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import com.github.rinnn31.motelserver.exception.AppError;
-import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.security.JwtUtils;
 
 
@@ -29,18 +27,14 @@ public class SessionManagementService {
     public String[] createJwtSession(String userId) {
         String refreshToken = java.util.UUID.randomUUID().toString().replace("-", "");
         String accessToken = jwtUtils.generateToken(userId, accessTokenTtls);
-        
-        String redisKey = "session:" + refreshToken;
-        redisTemplate.opsForValue().set(redisKey, userId, java.time.Duration.ofMillis(refreshTokenTtls));
+
+        redisTemplate.opsForValue().set(refreshToken, userId, java.time.Duration.ofMillis(refreshTokenTtls));
 
         return new String[]{accessToken, refreshToken};
     }
 
-    public String refreshAccessToken(String refreshToken, String userId) {
-        String storedUserId = redisTemplate.opsForValue().get("session:" + refreshToken);
-        if (!userId.equals(storedUserId)) {
-            throw new AppError(ErrorCode.INVALID_REFRESH_TOKEN);
-        }
+    public String refreshAccessToken(String refreshToken) {
+        String userId = redisTemplate.opsForValue().get(refreshToken);
         return jwtUtils.generateToken(userId, accessTokenTtls);
     }
 

@@ -104,8 +104,8 @@ public class AuthenticationService {
         sessionManagementService.invalidateSession(refreshToken, userId.toString());
     }
 
-    public TokenResponse refresh(UUID userId, String refreshToken) {
-        String newAccessToken = sessionManagementService.refreshAccessToken(refreshToken, userId.toString());
+    public TokenResponse refresh(String refreshToken) {
+        String newAccessToken = sessionManagementService.refreshAccessToken(refreshToken);
         return new TokenResponse(newAccessToken, refreshToken);
     }
 

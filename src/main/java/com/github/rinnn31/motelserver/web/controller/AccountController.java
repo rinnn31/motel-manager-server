@@ -41,13 +41,13 @@ public class AccountController {
         return accountService.getUserInfo(java.util.UUID.fromString(userId), false);
     }
 
-    @PostMapping("/me/change-contactpoint")
+    @PatchMapping("/me/change-contactpoint")
     public void changeContactpoint(@RequestParam String newPhoneNumber) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
         accountService.changeContactpoint(requesterId, newPhoneNumber);
     }
 
-    @PostMapping("/me/change-password")
+    @PatchMapping("/me/change-password")
     public void changePassword(@Valid @RequestBody ChangePasswordRequest input) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
         accountService.changePassword(requesterId, input.oldPassword(), input.newPassword());
