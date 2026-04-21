@@ -1,39 +1,43 @@
 package com.github.rinnn31.motelserver.service;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.github.rinnn31.motelserver.dto.request.AddRoomRequest;
 import com.github.rinnn31.motelserver.dto.response.RoomInfoResponse;
-import com.github.rinnn31.motelserver.dto.response.RoomMemberResponse;
 import com.github.rinnn31.motelserver.entity.Motel;
 import com.github.rinnn31.motelserver.entity.Room;
-import com.github.rinnn31.motelserver.entity.RoomMember;
+import com.github.rinnn31.motelserver.event.model.RoomNameChangedEvent;
+import com.github.rinnn31.motelserver.event.model.RoomPriceChangedEvent;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.repository.MotelRepository;
 import com.github.rinnn31.motelserver.repository.RoomMemberRepository;
 import com.github.rinnn31.motelserver.repository.RoomRepository;
-import com.github.rinnn31.motelserver.repository.UserRepository;
 
 @Service
 public class RoomService {
     private final RoomRepository roomRepository;
 
-    private final UserRepository userRepository;
-
     private final RoomMemberRepository roomMemberRepository;
     
     private final MotelRepository motelRepository;
 
-    public RoomService(RoomRepository roomRepository, UserRepository userRepository, RoomMemberRepository roomMemberRepository, MotelRepository motelRepository) {
+    private final ApplicationEventPublisher eventPublisher;
+
+    public RoomService(
+        RoomRepository roomRepository,
+        RoomMemberRepository roomMemberRepository, 
+        MotelRepository motelRepository,
+        ApplicationEventPublisher eventPublisher
+    ) {
         this.roomRepository = roomRepository;
-        this.userRepository = userRepository;
         this.roomMemberRepository = roomMemberRepository;
         this.motelRepository = motelRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     public RoomInfoResponse getRoomInfo(UUID roomId, UUID requesterId) {
@@ -99,7 +103,7 @@ public class RoomService {
         }
         return motel;
     }
-
+    
     public void addRoom(UUID ownerId, AddRoomRequest request) {   
         var motel = checkOwnershipAndGetMotel(UUID.fromString(request.motelId()), ownerId);
         if (roomRepository.existsByMotel_IdAndRoomNumber(UUID.fromString(request.motelId()), request.roomNumber())) {
@@ -132,6 +136,12 @@ public class RoomService {
 
         room.setPrice(newPrice);
         roomRepository.save(room);
+
+        eventPublisher.publishEvent(new RoomPriceChangedEvent(
+            room.getMotel().getId().toString(),
+            room.getId().toString(),
+            newPrice
+        ));
     }
 
     public void changeRoomNumber(UUID ownerId, UUID roomId, String newRoomNumber) {
@@ -146,61 +156,11 @@ public class RoomService {
 
         room.setRoomNumber(newRoomNumber);
         roomRepository.save(room);
-    }
 
-    public void addMember(UUID ownerId, UUID roomId, UUID userId) {
-        var room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new AppError(ErrorCode.ROOM_NOT_FOUND));
-        checkOwnershipAndGetMotel(room.getMotel().getId(), ownerId);
-
-        var user = userRepository.findById(userId)
-                .orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
-        if (roomMemberRepository.existsByUser_IdAndRoom_IdAndEndDateIsNull(userId, roomId)) {
-            throw new AppError(ErrorCode.INVALID_OPERATION);
-        }
-        if (roomMemberRepository.existsByUser_IdAndEndDateIsNull(userId)) {
-            throw new AppError(ErrorCode.INVALID_OPERATION);
-        }
-
-        var member = new RoomMember();
-        member.setRoom(room);
-        member.setUser(user);
-        member.setStartDate(LocalDate.now());
-        roomMemberRepository.save(member);
-    }
-
-    public void removeMember(UUID landlordId, UUID roomId, UUID userId) {
-        var room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new AppError(ErrorCode.ROOM_NOT_FOUND));
-        checkOwnershipAndGetMotel(room.getMotel().getId(), landlordId);
-
-        var member = roomMemberRepository.findByUser_IdAndRoom_IdAndEndDateIsNull(userId, roomId)
-                .orElseThrow(() -> new AppError(ErrorCode.INVALID_OPERATION));
-        member.setEndDate(LocalDate.now());
-        roomMemberRepository.save(member);
-    }
-
-    public List<RoomMemberResponse> getRoomMembers(UUID requesterId, UUID roomId) {
-        var room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new AppError(ErrorCode.ROOM_NOT_FOUND));
-        var motel = room.getMotel();
-
-        boolean isOwner = motel.getOwner().getId().equals(requesterId);
-        boolean isRoomMember = roomMemberRepository.existsByUser_IdAndRoom_IdAndEndDateIsNull(requesterId, roomId);
-
-        if (!isOwner && !isRoomMember) {
-            throw new AppError(ErrorCode.INVALID_OPERATION);
-        }
-
-        var members = roomMemberRepository.findByRoom_IdAndEndDateIsNull(roomId);
-        return members.stream().map(member -> {
-            var user = member.getUser();
-            return new RoomMemberResponse(
-                user.getId().toString(),
-                user.getFullName(),
-                user.getPhoneNumber(),
-                member.getStartDate()
-            );
-        }).toList();
+        eventPublisher.publishEvent(new RoomNameChangedEvent(
+            room.getMotel().getId().toString(),
+            room.getId().toString(),
+            newRoomNumber
+        ));
     }
 }

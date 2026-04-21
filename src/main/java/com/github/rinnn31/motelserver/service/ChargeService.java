@@ -73,7 +73,6 @@ public class ChargeService {
 
         charge.setCalculationType(EnumHelper.fromString(CalculationType.class, request.calculationType(), CalculationType.FIXED));
         charge.setUnitPrice(request.unitPrice());
-        charge.setDescription(request.description());
         motelChargeRepository.save(charge);
     }
 }

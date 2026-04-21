@@ -18,8 +18,11 @@ services:
       - SMS_PROVIDER=${SMS_PROVIDER}
       - INFOBIP_API_KEY=${INFOBIP_API_KEY}
       - INFOBIP_BASE_URL=${INFOBIP_BASE_URL}
-      - STORAGE_PROVIDER=${STORAGE_PROVIDER}
-      - LOCAL_STORAGE_BASE_DIRECTORY=./storage
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:minio}
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minio
+      - MINIO_SECRET_KEY=minio123
+      - MINIO_BUCKET_NAME=motel-bucket
     volumes:
       - ./storage:/app/storage
       
@@ -40,8 +43,6 @@ services:
     container_name: redis-cache
     ports:
       - "6379:6379"
-
-  services:
   minio:
     image: minio/minio
     container_name: minio

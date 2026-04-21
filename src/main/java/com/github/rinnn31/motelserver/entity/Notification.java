@@ -36,8 +36,11 @@ public class Notification {
     @Column(nullable = false)
     private String title;
 
-    @Column(name = "reference_id")
-    private UUID referenceId;
+    @Column(nullable = false)
+    private String content;
+
+    @Column(name = "extra_data", columnDefinition = "json")
+    private String extraData;
 
     @Column(nullable = false, name = "is_read")
     private boolean isRead = false;
@@ -64,12 +67,12 @@ public class Notification {
         this.user = targetUser;
     }
 
-    public UUID getReferenceId() {
-        return referenceId;
+    public String getContent() {
+        return content;
     }
 
-    public void setReferenceId(UUID referenceId) {
-        this.referenceId = referenceId;
+    public void setContent(String content) {
+        this.content = content;
     }
 
     public boolean isRead() {
@@ -102,5 +105,13 @@ public class Notification {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getExtraData() {
+        return extraData;
+    }
+
+    public void setExtraData(String extraData) {
+        this.extraData = extraData;
     }
 }

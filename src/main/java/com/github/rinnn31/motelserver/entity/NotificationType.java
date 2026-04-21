@@ -2,8 +2,9 @@ package com.github.rinnn31.motelserver.entity;
 
 public enum NotificationType {
     MESSAGE,
-    BILL,
-    MOTEL_UPDATE,
-    ROOM_UPDATE,
-    OTHER
+    BILL_CHANGED,
+    MOTEL_CHARGE_CHANGED,
+    ROOM_INFO_CHANGED,
+    MOTEL_INFO_CHANGED,
+    ROOM_MEMBER_CHANGED,
 }

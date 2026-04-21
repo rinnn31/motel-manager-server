@@ -3,11 +3,13 @@ package com.github.rinnn31.motelserver.service;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.github.rinnn31.motelserver.dto.response.MotelInfoResponse;
 import com.github.rinnn31.motelserver.entity.Motel;
 import com.github.rinnn31.motelserver.entity.UserRole;
+import com.github.rinnn31.motelserver.event.model.MotelNameChangedEvent;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.repository.MotelRepository;
@@ -22,10 +24,18 @@ public class MotelService {
 
     private final RoomMemberRepository roomMemberRepository;
 
-    public MotelService(MotelRepository motelRepository, UserRepository userRepository, RoomMemberRepository roomMemberRepository) {
+    private final ApplicationEventPublisher eventPublisher;
+
+    public MotelService(
+        MotelRepository motelRepository, 
+        UserRepository userRepository, 
+        RoomMemberRepository roomMemberRepository,
+        ApplicationEventPublisher eventPublisher
+    ) {
         this.motelRepository = motelRepository;
         this.userRepository = userRepository;
         this.roomMemberRepository = roomMemberRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     public MotelInfoResponse getMotelInfo(UUID motelId, UUID requesterId) {
@@ -95,6 +105,8 @@ public class MotelService {
 
         motel.setDisplayName(newDisplayName);
         motelRepository.save(motel);
+
+        eventPublisher.publishEvent(new MotelNameChangedEvent(motel.getId().toString(), newDisplayName));
     }
 
     public List<MotelInfoResponse> getMotelsOfUser(UUID userId) {

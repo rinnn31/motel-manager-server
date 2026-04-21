@@ -64,4 +64,24 @@ public class MinioStorageService implements ObjectStorageService {
             throw new AppError(ErrorCode.FILE_STORAGE_ERROR);
         }
     }
+
+    @Override
+    public boolean objectExists(String key) {
+        try {
+            minioClient.statObject(
+                io.minio.StatObjectArgs.builder()
+                    .bucket(properties.bucketName())
+                    .object(key)
+                    .build()
+            );
+            return true;
+        } catch (io.minio.errors.ErrorResponseException e) {
+            if (e.errorResponse().code().equals("NoSuchKey")) {
+                return false;
+            }
+            throw new AppError(ErrorCode.FILE_STORAGE_ERROR);
+        } catch (Exception e) {
+            throw new AppError(ErrorCode.FILE_STORAGE_ERROR);
+        }
+    }
 }

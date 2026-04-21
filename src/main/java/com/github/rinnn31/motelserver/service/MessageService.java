@@ -108,7 +108,7 @@ public class MessageService {
         List<MediaPresignedUrlResponse> attachmentUrls = new ArrayList<>();
         for (var contentType : attachmentContentTypes) {
             if (contentType == null || contentType.isBlank() || !List.of(ALLOWED_ATTACHMENT_TYPES).contains(contentType)) {
-                throw new AppError(ErrorCode.INVALID_ATTACHMENT_TYPE);
+                throw new AppError(ErrorCode.INVALID_FILE_TYPE);
             }
             attachmentUrls.add(storageService.generatePresignedUrl(contentType, "attachments", MAX_ATTACHMENT_SIZE_BYTES));
         }

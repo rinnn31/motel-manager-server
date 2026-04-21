@@ -9,7 +9,7 @@ public enum ErrorCode {
     INVALID_DATE_RANGE("Khoảng thời gian không hợp lệ", HttpStatus.BAD_REQUEST),
     
     FILE_STORAGE_ERROR("Lỗi lưu trữ tệp", HttpStatus.INTERNAL_SERVER_ERROR),
-    INVALID_ATTACHMENT_TYPE("Loại tệp đính kèm không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_FILE_TYPE("Định dạng tệp không hợp lệ", HttpStatus.BAD_REQUEST),
 
     /* Authentication */
     PHONE_NUMBER_USED("Số điện thoại đã được sử dụng", HttpStatus.BAD_REQUEST),

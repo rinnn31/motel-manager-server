@@ -30,9 +30,11 @@ public class MessageRecipient {
     @JoinColumn(name = "message_id", nullable = false, referencedColumnName = "id")
     private Message message;
 
+    @ManyToOne
     @JoinColumn(name = "motel_recipient_id", referencedColumnName = "id")
     private Motel motelRecipient;
 
+    @ManyToOne
     @JoinColumn(name = "room_recipient_id", referencedColumnName = "id")
     private Room roomRecipient;
 
