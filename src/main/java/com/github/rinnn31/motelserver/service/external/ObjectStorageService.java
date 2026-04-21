@@ -8,4 +8,6 @@ public interface ObjectStorageService {
     String getPublicUrl(String key);
 
     void deleteFile(String key);
+
+    boolean objectExists(String key);
 }

@@ -8,10 +8,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.github.rinnn31.motelserver.dto.request.UpdateProfileRequest;
+import com.github.rinnn31.motelserver.dto.response.MediaPresignedUrlResponse;
 import com.github.rinnn31.motelserver.dto.response.UserInfoResponse;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.repository.UserRepository;
+import com.github.rinnn31.motelserver.service.external.ObjectStorageService;
 
 @Service
 public class AccountService {
@@ -27,11 +29,24 @@ public class AccountService {
 
     private final PasswordEncoder passwordEncoder;
 
-    public AccountService(UserRepository userRepository, OtpService otpService, StringRedisTemplate redisTemplate, PasswordEncoder passwordEncoder) {
+    private final ObjectStorageService objectStorageService;
+
+    public static final int MAX_AVATAR_SIZE = 5 * 1024 * 1024;
+
+    public static final String[] ALLOWED_AVATAR_TYPES = new String[] {"image/jpeg", "image/png"};
+
+    public AccountService(
+        UserRepository userRepository, 
+        OtpService otpService, 
+        StringRedisTemplate redisTemplate, 
+        PasswordEncoder passwordEncoder,
+        ObjectStorageService objectStorageService
+    ) {
         this.userRepository = userRepository;
         this.otpService = otpService;
         this.redisTemplate = redisTemplate;
         this.passwordEncoder = passwordEncoder;
+        this.objectStorageService = objectStorageService;
     }   
 
     public void deleteAccount(UUID userId) {
@@ -74,7 +89,8 @@ public class AccountService {
             user.getFullName(),
             user.getGender(),
             user.getRole().name(),
-            includesPrivateInfo ? user.isVerified() : null
+            includesPrivateInfo ? user.isVerified() : null,
+            objectStorageService.getPublicUrl(user.getAvatarUrl())
         );
     }
 
@@ -127,6 +143,23 @@ public class AccountService {
 
         user.setVerified(true);
         user.setPhoneNumber(phoneNumber);
+        userRepository.save(user);
+    }
+
+    public MediaPresignedUrlResponse getAvatarUploadPresignedUrl(UUID userId, String imageType) {
+        if (!java.util.Arrays.asList(ALLOWED_AVATAR_TYPES).contains(imageType)) {
+            throw new AppError(ErrorCode.INVALID_FILE_TYPE);
+        }
+        return objectStorageService.generatePresignedUrl(imageType, "avatars", MAX_AVATAR_SIZE);
+    }
+
+    public void updateAvatarUrl(UUID userId, String avatarKey) {
+        if (!objectStorageService.objectExists(avatarKey)) {
+            throw new AppError(ErrorCode.INVALID_OPERATION);
+        }
+
+        var user = userRepository.findById(userId).orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
+        user.setAvatarUrl(avatarKey);
         userRepository.save(user);
     }
 }

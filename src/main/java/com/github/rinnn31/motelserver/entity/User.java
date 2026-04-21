@@ -41,6 +41,17 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
+    @Column(name = "avatar_url")
+    private String avatarUrl;
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
     public UUID getId() {
         return id;
     }

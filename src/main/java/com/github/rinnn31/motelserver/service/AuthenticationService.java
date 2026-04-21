@@ -12,7 +12,6 @@ import com.github.rinnn31.motelserver.dto.request.RegisterRequest;
 import com.github.rinnn31.motelserver.dto.request.ResetPasswordRequest;
 import com.github.rinnn31.motelserver.dto.response.AuthenticationResponse;
 import com.github.rinnn31.motelserver.dto.response.TokenResponse;
-import com.github.rinnn31.motelserver.dto.response.UserInfoResponse;
 import com.github.rinnn31.motelserver.entity.User;
 import com.github.rinnn31.motelserver.entity.UserRole;
 import com.github.rinnn31.motelserver.exception.AppError;
@@ -64,8 +63,7 @@ public class AuthenticationService {
         return new AuthenticationResponse(
             tokens[0],
             tokens[1],
-            user.getId().toString(),
-            new UserInfoResponse(user)
+            user.getId().toString()
         );
     }
 
@@ -81,8 +79,7 @@ public class AuthenticationService {
         return new AuthenticationResponse(
             tokens[0],
             tokens[1],
-            user.getId().toString(),
-            new UserInfoResponse(user)
+            user.getId().toString()
         );
     }
     

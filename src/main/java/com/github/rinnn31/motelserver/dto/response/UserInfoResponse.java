@@ -1,7 +1,6 @@
 package com.github.rinnn31.motelserver.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.github.rinnn31.motelserver.entity.User;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record UserInfoResponse(
@@ -9,15 +8,7 @@ public record UserInfoResponse(
     String fullName,
     Integer gender,
     String role,
-    Boolean isVerified
+    Boolean isVerified,
+    String avatarUrl
 ) {  
-    public UserInfoResponse(User user) {
-        this(
-            user.getPhoneNumber(),
-            user.getFullName(),
-            user.getGender(),
-            user.getRole().name(),
-            user.isVerified()
-        );
-    }
 }

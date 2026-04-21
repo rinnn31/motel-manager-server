@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.github.rinnn31.motelserver.dto.request.AddRoomRequest;
 import com.github.rinnn31.motelserver.dto.response.RoomInfoResponse;
-import com.github.rinnn31.motelserver.dto.response.RoomMemberResponse;
 import com.github.rinnn31.motelserver.security.UserExtractor;
 import com.github.rinnn31.motelserver.service.RoomService;
 
@@ -70,23 +69,5 @@ public class RoomController {
     public void deleteRoom(@PathVariable UUID roomId) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
         roomService.deleteRoom(requesterId, roomId);
-    }
-
-    @PostMapping("/{roomId}/members")
-    public void addRoomMember(@PathVariable UUID roomId, @RequestParam UUID userId) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        roomService.addMember(requesterId, roomId, userId);
-    }
-
-    @DeleteMapping("/{roomId}/members/{userId}")
-    public void removeRoomMember(@PathVariable UUID roomId, @PathVariable UUID userId) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        roomService.removeMember(requesterId, roomId, userId);
-    }
-
-    @GetMapping("/{roomId}/members")
-    public List<RoomMemberResponse> getRoomMembers(@PathVariable UUID roomId) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        return roomService.getRoomMembers(requesterId, roomId);
     }
 }

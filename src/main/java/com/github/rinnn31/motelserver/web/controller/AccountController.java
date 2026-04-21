@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.github.rinnn31.motelserver.dto.request.ChangePasswordRequest;
 import com.github.rinnn31.motelserver.dto.request.UpdateProfileRequest;
 import com.github.rinnn31.motelserver.dto.request.VerifyContactpointRequest;
+import com.github.rinnn31.motelserver.dto.response.MediaPresignedUrlResponse;
 import com.github.rinnn31.motelserver.dto.response.UserInfoResponse;
 import com.github.rinnn31.motelserver.security.UserExtractor;
 import com.github.rinnn31.motelserver.service.AccountService;
@@ -75,5 +76,17 @@ public class AccountController {
     public void updateProfile(@Valid @RequestBody UpdateProfileRequest input) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
         accountService.updateProfile(requesterId, input);
+    }
+
+    @GetMapping("/me/avatar-upload-url")
+    public MediaPresignedUrlResponse getAvatarUploadPresignedUrl(@RequestParam String imageType) {
+        UUID requesterId = UserExtractor.extractUserIdFromContext();
+        return accountService.getAvatarUploadPresignedUrl(requesterId, imageType);
+    }
+
+    @PatchMapping("/me/update-avatar")
+    public void updateAvatar(@RequestParam String avatarKey) {
+        UUID requesterId = UserExtractor.extractUserIdFromContext();
+        accountService.updateAvatarUrl(requesterId, avatarKey);
     }
 }
