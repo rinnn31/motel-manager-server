@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.github.rinnn31.motelserver.dto.request.DeviceRegisterRequest;
 import com.github.rinnn31.motelserver.dto.request.LoginRequest;
 import com.github.rinnn31.motelserver.dto.request.RegisterRequest;
 import com.github.rinnn31.motelserver.dto.request.ResetPasswordRequest;
@@ -30,11 +31,19 @@ public class AuthenticationService {
 
     private final SessionManagementService sessionManagementService;
 
-    public AuthenticationService(UserRepository userRepository, OtpService otpVerificationService, PasswordEncoder passwordEncoder, SessionManagementService sessionManagementService) {
+    private final UserDeviceService userDeviceService;
+
+    public AuthenticationService(
+            UserRepository userRepository, 
+            OtpService otpVerificationService, 
+            PasswordEncoder passwordEncoder, 
+            SessionManagementService sessionManagementService, 
+            UserDeviceService userDeviceService) {
         this.userRepository = userRepository;
         this.otpService = otpVerificationService;
         this.passwordEncoder = passwordEncoder;
         this.sessionManagementService = sessionManagementService;
+        this.userDeviceService = userDeviceService;
     }
 
     public AuthenticationResponse register(RegisterRequest registerModel) {
@@ -51,7 +60,7 @@ public class AuthenticationService {
         user.setVerified(false);
         userRepository.save(user);
 
-        String[] tokens = sessionManagementService.createJwtSession(user.getId().toString());
+        String[] tokens = sessionManagementService.createSession(user.getId().toString());
         return new AuthenticationResponse(
             tokens[0],
             tokens[1],
@@ -68,7 +77,7 @@ public class AuthenticationService {
             throw new AppError(ErrorCode.INVALID_CREDENTIALS);
         }
 
-        String[] tokens = sessionManagementService.createJwtSession(user.getId().toString());
+        String[] tokens = sessionManagementService.createSession(user.getId().toString());
         return new AuthenticationResponse(
             tokens[0],
             tokens[1],
@@ -101,7 +110,11 @@ public class AuthenticationService {
     }
 
     public void logout(UUID userId, String refreshToken) {
+        if (!sessionManagementService.isSessionValid(refreshToken, userId.toString())) {
+            throw new AppError(ErrorCode.INVALID_OPERATION);
+        }
         sessionManagementService.invalidateSession(refreshToken, userId.toString());
+        userDeviceService.unregisterDeviceToken(refreshToken);
     }
 
     public TokenResponse refresh(String refreshToken) {
@@ -114,5 +127,16 @@ public class AuthenticationService {
             .orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
 
         otpService.sendOtp(user.getId().toString(), phoneNumber, VERIFY_ACTION_RESET_PASSWORD, locale);
+    }
+
+    public void registerDevice(UUID requesterId, DeviceRegisterRequest request) {
+        var user = userRepository.findById(requesterId)
+            .orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
+        if (!sessionManagementService.isSessionValid(request.sessionToken(), requesterId.toString())) {
+            throw new AppError(ErrorCode.INVALID_OPERATION);
+        }
+        
+        userDeviceService.registerDeviceToken(request.sessionToken(), request.deviceToken(), user);
+
     }   
 }

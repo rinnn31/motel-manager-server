@@ -9,7 +9,7 @@ public record MessageInfoResponse(
     String id,
     String title,
     String content,
-    List<String> imageUrls,
+    List<String> attachmentKeys,
     Long createdAt,
     String senderId,
     List<String> recipientIds

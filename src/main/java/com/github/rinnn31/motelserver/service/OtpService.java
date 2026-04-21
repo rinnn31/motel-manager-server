@@ -3,7 +3,6 @@ package com.github.rinnn31.motelserver.service;
 import java.security.SecureRandom;
 import java.util.Locale;
 
-import org.springframework.context.MessageSource;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -19,16 +18,13 @@ public class OtpService {
 
     private final StringRedisTemplate redisTemplate;
 
-    private final MessageSource messageSource;
-
     private final OtpProperties otpProperties;
 
     private final SecureRandom random = new SecureRandom();
     
-    public OtpService(SmsSender smsSender, StringRedisTemplate redisTemplate, MessageSource messageSource, OtpProperties otpProperties) {
+    public OtpService(SmsSender smsSender, StringRedisTemplate redisTemplate, OtpProperties otpProperties) {
         this.smsSender = smsSender;
         this.redisTemplate = redisTemplate;
-        this.messageSource = messageSource;
         this.otpProperties = otpProperties;
     }
 

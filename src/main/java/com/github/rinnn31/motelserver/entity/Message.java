@@ -8,11 +8,11 @@ import org.hibernate.annotations.UuidGenerator;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
@@ -35,21 +35,22 @@ public class Message {
     @Column(nullable = false, columnDefinition="TEXT")    
     private String content;
 
-    @Column(name = "sender_id", nullable = false)
-    private UUID senderId;
+    @ManyToOne
+    @JoinColumn(name = "motel_sender_id", referencedColumnName = "id")
+    private Motel motelSender;
+
+    @ManyToOne
+    @JoinColumn(name = "room_sender_id", referencedColumnName = "id")
+    private Room roomSender;
 
     @OneToMany(mappedBy = "message")
     private List<MessageRecipient> recipients;
 
-    @Column(name = "image_urls", columnDefinition="TEXT")
-    private String imageUrls;
+    @Column(name = "attachment_urls", columnDefinition="TEXT")
+    private String attachmentUrls;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
-
-    @Column(name = "object_type", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private ObjectType objectType;
 
     public UUID getId() {
         return id;
@@ -75,23 +76,31 @@ public class Message {
         this.content = content;
     }
 
-    public UUID getSenderId() {
-        return senderId;
+    public Motel getMotelSender() {
+        return motelSender;
     }
 
-    public void setSenderId(UUID senderId) {
-        this.senderId = senderId;
+    public void setMotelSender(Motel motelSender) {
+        this.motelSender = motelSender;
     }
 
-    public List<String> getImageUrls() {
-        if (imageUrls == null || imageUrls.isEmpty()) {
+    public Room getRoomSender() {
+        return roomSender;
+    }
+
+    public void setRoomSender(Room roomSender) {
+        this.roomSender = roomSender;
+    }
+
+    public List<String> getAttachmentUrls() {
+        if (attachmentUrls == null || attachmentUrls.isEmpty()) {
             return List.of();
         }
-        return List.of(imageUrls.split(";"));
+        return List.of(attachmentUrls.split(";"));
     }
 
-    public void setImageUrls(List<String> imageUrls) {
-        this.imageUrls = String.join(";", imageUrls);
+    public void setAttachmentUrls(List<String> attachmentUrls) {
+        this.attachmentUrls = String.join(";", attachmentUrls);
     }
 
     public List<MessageRecipient> getRecipients() {
@@ -108,13 +117,5 @@ public class Message {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public ObjectType getObjectType() {
-        return objectType;
-    }
-
-    public void setObjectType(ObjectType objectType) {
-        this.objectType = objectType;
     }
 }

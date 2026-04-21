@@ -102,6 +102,12 @@
             <artifactId>java-dotenv</artifactId>
             <version>5.2.2</version>
         </dependency>
+
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>9.0.0</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

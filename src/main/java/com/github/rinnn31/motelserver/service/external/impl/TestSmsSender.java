@@ -1,7 +1,9 @@
-package com.github.rinnn31.motelserver.service.external;
+package com.github.rinnn31.motelserver.service.external.impl;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+
+import com.github.rinnn31.motelserver.service.external.SmsSender;
 
 @Component
 @ConditionalOnProperty(name = "sms.provider", havingValue = "test")

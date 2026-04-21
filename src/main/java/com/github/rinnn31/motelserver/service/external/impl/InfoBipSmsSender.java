@@ -1,9 +1,10 @@
-package com.github.rinnn31.motelserver.service.external;
+package com.github.rinnn31.motelserver.service.external.impl;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import com.github.rinnn31.motelserver.config.properties.InfoBipProperties;
+import com.github.rinnn31.motelserver.service.external.SmsSender;
 import com.infobip.ApiClient;
 import com.infobip.ApiException;
 import com.infobip.ApiKey;

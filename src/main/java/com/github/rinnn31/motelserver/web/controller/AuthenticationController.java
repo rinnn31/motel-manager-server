@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.github.rinnn31.motelserver.dto.response.AuthenticationResponse;
 import com.github.rinnn31.motelserver.dto.response.TokenResponse;
+import com.github.rinnn31.motelserver.dto.request.DeviceRegisterRequest;
 import com.github.rinnn31.motelserver.dto.request.LoginRequest;
 import com.github.rinnn31.motelserver.dto.request.RegisterRequest;
 import com.github.rinnn31.motelserver.dto.request.ResetPasswordRequest;
@@ -64,4 +65,11 @@ public class AuthenticationController {
         Locale locale = LocaleContextHolder.getLocale();
         authenticationService.sendResetPasswordOtp(phoneNumber, locale);
     }
+
+    @PostMapping("/register-device")
+    public void registerDevice(@Valid @RequestBody DeviceRegisterRequest request) {
+        UUID requesterId = UserExtractor.extractUserIdFromContext();
+        authenticationService.registerDevice(requesterId, request);
+    }
+
 }

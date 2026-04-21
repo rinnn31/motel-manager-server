@@ -24,7 +24,7 @@ public class SessionManagementService {
         this.jwtUtils = jwtUtils;
     }   
 
-    public String[] createJwtSession(String userId) {
+    public String[] createSession(String userId) {
         String refreshToken = java.util.UUID.randomUUID().toString().replace("-", "");
         String accessToken = jwtUtils.generateToken(userId, accessTokenTtls);
 
@@ -35,14 +35,18 @@ public class SessionManagementService {
 
     public String refreshAccessToken(String refreshToken) {
         String userId = redisTemplate.opsForValue().get(refreshToken);
+
         return jwtUtils.generateToken(userId, accessTokenTtls);
     }
 
     public void invalidateSession(String refreshToken, String userId) {
-        String redisKey = "session:" + refreshToken;
-        String storedUserId = redisTemplate.opsForValue().get(redisKey);
+        String storedUserId = redisTemplate.opsForValue().get(refreshToken);
         if (userId.equals(storedUserId)) {
-            redisTemplate.delete(redisKey);
+            redisTemplate.delete(refreshToken);
         }
+    }
+
+    public boolean isSessionValid(String refreshToken, String userId) {
+        return redisTemplate.hasKey(refreshToken) && userId.equals(redisTemplate.opsForValue().get(refreshToken));
     }
 }

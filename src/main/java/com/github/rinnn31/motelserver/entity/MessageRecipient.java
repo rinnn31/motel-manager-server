@@ -4,10 +4,7 @@ import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
@@ -19,7 +16,8 @@ import jakarta.persistence.Table;
 @Table(
     name = "message_recipients",
     indexes = {
-        @Index(name = "idx_recipient_id_object_type", columnList = "recipient_id, object_type")
+        @Index(name = "idx_motel_recipient_id", columnList = "motel_recipient_id"),
+        @Index(name = "idx_room_recipient_id", columnList = "room_recipient_id")
     }
 )
 public class MessageRecipient {
@@ -32,12 +30,11 @@ public class MessageRecipient {
     @JoinColumn(name = "message_id", nullable = false, referencedColumnName = "id")
     private Message message;
 
-    @Column(name = "recipient_id", nullable = false)
-    private UUID recipientId;
+    @JoinColumn(name = "motel_recipient_id", referencedColumnName = "id")
+    private Motel motelRecipient;
 
-    @Column(name = "object_type", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private ObjectType objectType;
+    @JoinColumn(name = "room_recipient_id", referencedColumnName = "id")
+    private Room roomRecipient;
 
     public UUID getId() {
         return id;
@@ -55,19 +52,19 @@ public class MessageRecipient {
         this.message = message;
     }
 
-    public UUID getRecipientId() {
-        return recipientId;
+    public Motel getMotelRecipient() {
+        return motelRecipient;
     }
 
-    public void setRecipientId(UUID recipientId) {
-        this.recipientId = recipientId;
-    } 
-
-    public ObjectType getObjectType() {
-        return objectType;
+    public void setMotelRecipient(Motel motelRecipient) {
+        this.motelRecipient = motelRecipient;
     }
 
-    public void setObjectType(ObjectType objectType) {
-        this.objectType = objectType;
+    public Room getRoomRecipient() {
+        return roomRecipient;
+    }
+
+    public void setRoomRecipient(Room roomRecipient) {
+        this.roomRecipient = roomRecipient;
     }
 }

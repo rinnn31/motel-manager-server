@@ -1,32 +1,30 @@
 package com.github.rinnn31.motelserver.service;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.github.rinnn31.motelserver.dto.request.SendMessageRequest;
+import com.github.rinnn31.motelserver.dto.response.MediaPresignedUrlResponse;
 import com.github.rinnn31.motelserver.dto.response.MessageInfoResponse;
 import com.github.rinnn31.motelserver.entity.Message;
 import com.github.rinnn31.motelserver.entity.MessageRecipient;
-import com.github.rinnn31.motelserver.entity.ObjectType;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.repository.MessageRepository;
 import com.github.rinnn31.motelserver.repository.MotelRepository;
 import com.github.rinnn31.motelserver.repository.RoomMemberRepository;
 import com.github.rinnn31.motelserver.repository.RoomRepository;
-import com.github.rinnn31.motelserver.service.external.StorageService;
+import com.github.rinnn31.motelserver.service.external.ObjectStorageService;
 
 @Service
 public class MessageService {
     private final MessageRepository messageRepository;
 
-    private final StorageService storageService;
+    private final ObjectStorageService storageService;
 
     private final RoomRepository roomRepository;
 
@@ -38,7 +36,20 @@ public class MessageService {
 
     public static final String RECEIVED_BOX = "received";
 
-    public MessageService(MessageRepository messageRepository, StorageService storageService, RoomRepository roomRepository, RoomMemberRepository roomMemberRepository, MotelRepository motelRepository) {
+    public static final String ROOM_OBJECT_TYPE = "room";
+
+    public static final String MOTEL_OBJECT_TYPE = "motel";
+
+    private static final int MAX_ATTACHMENT_SIZE_BYTES = 50 * 1024 * 1024;
+
+    private static final String[] ALLOWED_ATTACHMENT_TYPES = new String[] {
+        "image/jpeg",
+        "image/png",
+        "video/mp4",
+        "video/quicktime"
+    };
+
+    public MessageService(MessageRepository messageRepository, ObjectStorageService storageService, RoomRepository roomRepository, RoomMemberRepository roomMemberRepository, MotelRepository motelRepository) {
         this.messageRepository = messageRepository;
         this.storageService = storageService;
         this.roomRepository = roomRepository;
@@ -46,15 +57,19 @@ public class MessageService {
         this.motelRepository = motelRepository;
     }
 
-    public void sendMessage(UUID senderId, ObjectType senderType, SendMessageRequest request, List<MultipartFile> images) {
-        if (senderType == ObjectType.MOTEL) {
-            sendFromMotelToRoom(senderId, request, images);
-        } else {
-            sendFromRoomToMotel(senderId, request, images);
+    public List<MediaPresignedUrlResponse> sendMessage(UUID senderId, String sendObjectType, SendMessageRequest request) {
+        switch (sendObjectType) {
+            case ROOM_OBJECT_TYPE -> {
+                return sendFromRoomToMotel(senderId, request);
+            }
+            case MOTEL_OBJECT_TYPE -> {
+                return sendFromMotelToRoom(senderId, request);
+            }
+            default -> throw new AppError(ErrorCode.INVALID_OPERATION);
         }
     }
 
-    private void sendFromMotelToRoom(UUID senderId, SendMessageRequest request, List<MultipartFile> images) {
+    private List<MediaPresignedUrlResponse> sendFromMotelToRoom(UUID senderId, SendMessageRequest request) {
         if (roomRepository.countDistinctMotelByIdIn(request.targetRoomIds().stream().map(UUID::fromString).toList()) != 1) {
             throw new AppError(ErrorCode.ROOM_NOT_SAME_MOTEL);
         }
@@ -66,56 +81,60 @@ public class MessageService {
         if (!motel.getOwner().getId().equals(senderId)) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }   
-        
-        var recipients = rooms.stream().map(room -> {
+
+        var atatchmentUrls = createAttachmentUrls(request.attachmentContentTypes());
+
+        var message = new Message();
+        message.setTitle(request.title());
+        message.setContent(request.content());
+        message.setMotelSender(motel);
+        message.setAttachmentUrls(atatchmentUrls.stream().map(MediaPresignedUrlResponse::key).toList());
+        message.setRecipients(rooms.stream().map(room -> {
             var recipient = new MessageRecipient();
-            recipient.setRecipientId(room.getId());
+            recipient.setRoomRecipient(room);
             return recipient;
-        }).toList();
-        saveMessage(request.title(), request.content(), senderId, uploadImages(images), ObjectType.MOTEL, recipients);
-    
+        }).toList());
+        message.setCreatedAt(Instant.now());
+        messageRepository.save(message);
+
+        return atatchmentUrls;
     }
 
-    private void sendFromRoomToMotel(UUID senderId, SendMessageRequest request, List<MultipartFile> images) {
+    private List<MediaPresignedUrlResponse> createAttachmentUrls(List<String> attachmentContentTypes) {
+        if (attachmentContentTypes == null || attachmentContentTypes.isEmpty()) {
+            return List.of();
+        }
+
+        List<MediaPresignedUrlResponse> attachmentUrls = new ArrayList<>();
+        for (var contentType : attachmentContentTypes) {
+            if (contentType == null || contentType.isBlank() || !List.of(ALLOWED_ATTACHMENT_TYPES).contains(contentType)) {
+                throw new AppError(ErrorCode.INVALID_ATTACHMENT_TYPE);
+            }
+            attachmentUrls.add(storageService.generatePresignedUrl(contentType, "attachments", MAX_ATTACHMENT_SIZE_BYTES));
+        }
+        return attachmentUrls;
+    }
+
+    private List<MediaPresignedUrlResponse> sendFromRoomToMotel(UUID senderId, SendMessageRequest request) {
         var roomMember = roomMemberRepository.findByUser_IdAndEndDateIsNull(senderId)
                 .orElseThrow(() -> new AppError(ErrorCode.INVALID_OPERATION));
         var room = roomMember.getRoom();
         var motel = room.getMotel();
 
+        var atatchmentUrls = createAttachmentUrls(request.attachmentContentTypes());
+
         var recipient = new MessageRecipient();
-        recipient.setRecipientId(motel.getId());
-        saveMessage(request.title(), request.content(), senderId, uploadImages(images), ObjectType.ROOM, List.of(recipient));
-    }
-
-    private List<String> uploadImages(List<MultipartFile> images) {
-        if (images == null || images.isEmpty()) {
-            return List.of();
-        }
-        List<String> imageUrls = new ArrayList<>();
-        for (var image : images) {
-            String storedName = "attachments/" + UUID.randomUUID();
-            String storedUrl;
-            try {
-                storedUrl = storageService.uploadFile(image.getBytes(), storedName);
-            } catch (IOException e) {
-                throw new AppError(ErrorCode.FILE_UPLOAD_FAILED);
-            }
-            imageUrls.add(storedUrl);
-        }
-        return imageUrls;
-    }
-
-    private void saveMessage(String title, String content, UUID senderId, List<String> imageUrls, ObjectType objectType, List<MessageRecipient> recipients) {
+        recipient.setMotelRecipient(motel);
         var message = new Message();
-        message.setTitle(title);
-        message.setContent(content);
-        message.setSenderId(senderId);
-        message.setImageUrls(imageUrls);
-        message.setObjectType(objectType);
+        message.setTitle(request.title());
+        message.setContent(request.content());
+        message.setRoomSender(room);
+        message.setAttachmentUrls(atatchmentUrls.stream().map(MediaPresignedUrlResponse::key).toList());
+        message.setRecipients(List.of(recipient));
         message.setCreatedAt(Instant.now());
-        message.setRecipients(recipients);
-
         messageRepository.save(message);
+
+        return atatchmentUrls;
     }
 
     public List<MessageInfoResponse> getMessages(UUID requesterId, UUID objectId, String objectType, String box) {
@@ -138,10 +157,10 @@ public class MessageService {
         List<Message> messages;
         switch (box) {
             case SENT_BOX -> {
-                messages = messageRepository.findBySenderIdAndObjectTypeOrderByCreatedAtDesc(roomId, ObjectType.ROOM);
+                messages = messageRepository.findByRoomSender_IdOrderByCreatedAtDesc(roomId);
             }
             case RECEIVED_BOX -> {
-                messages = messageRepository.findByRecipientIdAndObjectTypeOrderByCreatedAtDesc(roomId, ObjectType.ROOM);
+                messages = messageRepository.findByRoomRecipient_Id(roomId);
             }
             default -> throw new AppError(ErrorCode.INVALID_OPERATION);
         }
@@ -149,10 +168,10 @@ public class MessageService {
                 message.getId().toString(),
                 message.getTitle(),
                 message.getContent(),
-                message.getImageUrls(),
+                message.getAttachmentUrls().stream().map(storageService::getPublicUrl).toList(),
                 message.getCreatedAt().toEpochMilli(),
-                message.getSenderId().toString(),
-                List.of(RECEIVED_BOX.equals(box) ? roomId.toString() : message.getRecipients().get(0).getRecipientId().toString())
+                SENT_BOX.equals(box) ? roomId.toString() : message.getMotelSender().getId().toString(),
+                List.of(RECEIVED_BOX.equals(box) ? roomId.toString() : message.getRecipients().get(0).getMotelRecipient().getId().toString())
             )).toList();
     }
 
@@ -164,10 +183,10 @@ public class MessageService {
         List<Message> messages;
         switch (box) {
             case SENT_BOX -> {
-                messages = messageRepository.findBySenderIdAndObjectTypeOrderByCreatedAtDesc(motelId, ObjectType.MOTEL);
+                messages = messageRepository.findByMotelSender_IdOrderByCreatedAtDesc(motelId);
             }
             case RECEIVED_BOX -> {
-                messages = messageRepository.findByRecipientIdAndObjectTypeOrderByCreatedAtDesc(motelId, ObjectType.MOTEL);
+                messages = messageRepository.findByMotelRecipient_Id(motelId);
             }
             default -> throw new AppError(ErrorCode.INVALID_OPERATION);
         }
@@ -175,10 +194,10 @@ public class MessageService {
                 message.getId().toString(),
                 message.getTitle(),
                 message.getContent(),
-                message.getImageUrls(),
+                message.getAttachmentUrls().stream().map(storageService::getPublicUrl).toList(),
                 message.getCreatedAt().toEpochMilli(),
-                message.getSenderId().toString(),
-                message.getRecipients().stream().map(recipient -> recipient.getRecipientId().toString()).toList()
+                SENT_BOX.equals(box) ? motelId.toString() : message.getRoomSender().getId().toString(),
+                message.getRecipients().stream().map(recipient -> SENT_BOX.equals(box) ? recipient.getRoomRecipient().getId().toString() : recipient.getMotelRecipient().getId().toString()).toList()
             )).toList();
     }
 

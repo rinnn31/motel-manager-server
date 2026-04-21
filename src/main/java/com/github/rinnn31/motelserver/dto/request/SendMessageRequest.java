@@ -15,6 +15,9 @@ public record SendMessageRequest(
     String title,
 
     @NotBlank(message = "Nội dung không được để trống")
-    String content
+    String content,
+    
+    @Size(max = 5, message = "Chỉ được phép gửi tối đa 10 tệp đính kèm")
+    List<String> attachmentContentTypes
 ) {
 }

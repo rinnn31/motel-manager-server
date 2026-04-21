@@ -6,9 +6,10 @@ public enum ErrorCode {
     /* Common */
     INVALID_OPERATION("Hành động không hợp lệ", HttpStatus.BAD_REQUEST),
     INVALID_ID("ID không hợp lệ", HttpStatus.BAD_REQUEST),
-    INVALID_DATE_RANGE("Khoảng thời gian không hợp lệ", HttpStatus.BAD_REQUEST), 
-    INVALID_FILE_TYPE("Định dạng tệp không hợp lệ", HttpStatus.BAD_REQUEST),
-    FILE_UPLOAD_FAILED("Tải tệp thất bại", HttpStatus.INTERNAL_SERVER_ERROR),
+    INVALID_DATE_RANGE("Khoảng thời gian không hợp lệ", HttpStatus.BAD_REQUEST),
+    
+    FILE_STORAGE_ERROR("Lỗi lưu trữ tệp", HttpStatus.INTERNAL_SERVER_ERROR),
+    INVALID_ATTACHMENT_TYPE("Loại tệp đính kèm không hợp lệ", HttpStatus.BAD_REQUEST),
 
     /* Authentication */
     PHONE_NUMBER_USED("Số điện thoại đã được sử dụng", HttpStatus.BAD_REQUEST),
@@ -37,7 +38,7 @@ public enum ErrorCode {
     ROOM_NUMBER_EXISTS("Số phòng đã tồn tại trong nhà trọ này", HttpStatus.BAD_REQUEST),
     ROOM_HAS_MEMBERS("Không thể xóa phòng khi vẫn còn thành viên", HttpStatus.BAD_REQUEST), 
     INVOICE_NOT_FOUND("Hóa đơn không tồn tại", HttpStatus.NOT_FOUND),
-    ROOM_NOT_SAME_MOTEL("Các phòng phải thuộc cùng một nhà trọ", HttpStatus.BAD_REQUEST)
+    ROOM_NOT_SAME_MOTEL("Các phòng phải thuộc cùng một nhà trọ", HttpStatus.BAD_REQUEST), 
     ;
     private final String message;
 
