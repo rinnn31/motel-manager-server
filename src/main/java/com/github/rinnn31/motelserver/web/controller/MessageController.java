@@ -3,7 +3,6 @@ package com.github.rinnn31.motelserver.web.controller;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,7 +28,7 @@ public class MessageController {
         this.messageService = messageService;
     }
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping
     public List<MediaPresignedUrlResponse> sendMessage(
         @RequestParam String sendObjectType,
 
@@ -43,10 +42,19 @@ public class MessageController {
     public List<MessageInfoResponse> getMessages(
         @RequestParam UUID objectId, 
         @RequestParam String objectType,
-        @RequestParam(defaultValue = MessageService.SENT_BOX) String box
+        @RequestParam(defaultValue = MessageService.SENT_BOX) String box,
+        @RequestParam(required = false) Long from,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size
     ) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
-        return messageService.getMessages(requesterId, objectId, objectType, box);
+        return messageService.getMessages(requesterId, objectId, objectType, box, from, page, size);
+    }
+
+    @GetMapping("/{messageId}")
+    public MessageInfoResponse getMessageDetails(@RequestParam UUID messageId) {
+        UUID requesterId = UserExtractor.extractUserIdFromContext();
+        return messageService.getMessageDetails(requesterId, messageId);
     }
 
 }

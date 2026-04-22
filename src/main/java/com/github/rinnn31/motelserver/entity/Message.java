@@ -20,7 +20,8 @@ import jakarta.persistence.Table;
 @Table(
     name = "messages",
     indexes = {
-        @Index(name = "idx_sender_id_object_type", columnList = "sender_id, object_type")
+        @Index(name = "idx_message_motel_sender", columnList = "motel_sender_id"),
+        @Index(name = "idx_message_room_sender", columnList = "room_sender_id")
     }
 )
 public class Message {

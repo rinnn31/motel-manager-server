@@ -39,6 +39,7 @@ public enum ErrorCode {
     ROOM_HAS_MEMBERS("Không thể xóa phòng khi vẫn còn thành viên", HttpStatus.BAD_REQUEST), 
     INVOICE_NOT_FOUND("Hóa đơn không tồn tại", HttpStatus.NOT_FOUND),
     ROOM_NOT_SAME_MOTEL("Các phòng phải thuộc cùng một nhà trọ", HttpStatus.BAD_REQUEST), 
+    MESSAGE_NOT_FOUND("Tin nhắn không tồn tại", HttpStatus.NOT_FOUND),
     ;
     private final String message;
 

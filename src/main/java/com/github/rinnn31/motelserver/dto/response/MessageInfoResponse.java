@@ -11,8 +11,8 @@ public record MessageInfoResponse(
     String content,
     List<String> attachmentKeys,
     Long createdAt,
-    String senderId,
-    List<String> recipientIds
+    MessageTargetInfo sender,
+    List<MessageTargetInfo> recipients
 ) {
     
 }

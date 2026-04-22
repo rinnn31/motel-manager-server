@@ -36,7 +36,7 @@ public class Room {
     private Motel motel;
 
     @OneToMany(mappedBy="room")
-    private List<RoomMember> members;
+    private List<Member> members;
     
     @OneToMany(mappedBy="room")
     private List<Invoice> invoices;
@@ -67,11 +67,11 @@ public class Room {
         this.motel = motel;
     }
 
-    public List<RoomMember> getMembers() {
+    public List<Member> getMembers() {
         return members;
     }
 
-    public void setMembers(List<RoomMember> members) {
+    public void setMembers(List<Member> members) {
         this.members = members;
     }
 
