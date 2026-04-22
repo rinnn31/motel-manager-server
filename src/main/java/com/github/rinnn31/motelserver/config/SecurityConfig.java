@@ -35,7 +35,14 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/reset-password", "/api/auth/send-reset-password-otp", "/api/auth/refresh").permitAll()
+                .requestMatchers(
+                    "/api/auth/login", 
+                    "/api/auth/register", 
+                    "/api/auth/reset-password", 
+                    "/api/auth/send-reset-password-otp", 
+                    "/api/auth/refresh",
+                    "/api/media/**"
+                ).permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

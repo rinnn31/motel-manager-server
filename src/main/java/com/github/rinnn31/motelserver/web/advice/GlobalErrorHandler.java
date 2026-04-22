@@ -20,7 +20,7 @@ public class GlobalErrorHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> handleGenericException(Exception ex) {
-        System.err.println("Unhandled exception: " + ex.getMessage());
+        ex.printStackTrace(); // Log lỗi để dễ dàng debug
         return ResponseEntity.status(500).body(ApiResponse.error("INTERNAL_SERVER_ERROR", "Đã có lỗi xảy ra, vui lòng thử lại sau"));
     }
 
