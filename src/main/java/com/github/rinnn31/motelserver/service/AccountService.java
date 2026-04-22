@@ -85,12 +85,13 @@ public class AccountService {
     public UserInfoResponse getUserInfo(UUID userId, boolean includesPrivateInfo) {
         var user = userRepository.findById(userId).orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
         return new UserInfoResponse(
+            user.getId().toString(),
             includesPrivateInfo ? user.getPhoneNumber() : null,
             user.getFullName(),
             user.getGender(),
             user.getRole().name(),
             includesPrivateInfo ? user.isVerified() : null,
-            objectStorageService.getPublicUrl(user.getAvatarUrl())
+            user.getAvatarUrl()
         );
     }
 
@@ -155,7 +156,7 @@ public class AccountService {
 
     public void updateAvatarUrl(UUID userId, String avatarKey) {
         if (!objectStorageService.objectExists(avatarKey)) {
-            throw new AppError(ErrorCode.INVALID_OPERATION);
+            throw new AppError(ErrorCode.FILE_NOT_FOUND);
         }
 
         var user = userRepository.findById(userId).orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
