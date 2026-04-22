@@ -14,7 +14,7 @@ import com.github.rinnn31.motelserver.entity.Invoice;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.repository.InvoiceRepository;
-import com.github.rinnn31.motelserver.repository.RoomMemberRepository;
+import com.github.rinnn31.motelserver.repository.MemberRepository;
 import com.github.rinnn31.motelserver.repository.RoomRepository;
 
 
@@ -24,9 +24,9 @@ public class InvoiceService {
 
     private final RoomRepository roomRepository;
 
-    private final RoomMemberRepository roomMemberRepository;
+    private final MemberRepository roomMemberRepository;
     
-    public InvoiceService(InvoiceRepository invoiceRepository, RoomRepository roomRepository, RoomMemberRepository roomMemberRepository) {
+    public InvoiceService(InvoiceRepository invoiceRepository, RoomRepository roomRepository, MemberRepository roomMemberRepository) {
         this.invoiceRepository = invoiceRepository;
         this.roomRepository = roomRepository;
         this.roomMemberRepository = roomMemberRepository;

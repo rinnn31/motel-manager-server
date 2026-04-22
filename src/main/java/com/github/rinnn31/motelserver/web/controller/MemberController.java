@@ -12,29 +12,29 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.github.rinnn31.motelserver.dto.request.AddMemberRequest;
-import com.github.rinnn31.motelserver.dto.response.RoomMemberResponse;
+import com.github.rinnn31.motelserver.dto.response.MemberInfoResponse;
 import com.github.rinnn31.motelserver.security.UserExtractor;
-import com.github.rinnn31.motelserver.service.RoomMemberService;
+import com.github.rinnn31.motelserver.service.MemberService;
 
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/members")
-public class RoomMemberController {
-    private final RoomMemberService roomMemberService;
+public class MemberController {
+    private final MemberService roomMemberService;
 
-    public RoomMemberController(RoomMemberService roomMemberService) {
+    public MemberController(MemberService roomMemberService) {
         this.roomMemberService = roomMemberService;
     }
 
     @GetMapping("/by-room/{roomId}")
-    public List<RoomMemberResponse> getRoomMembersByRoomId(@PathVariable String roomId) {
+    public List<MemberInfoResponse> getRoomMembersByRoomId(@PathVariable String roomId) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
         return roomMemberService.getRoomMembersByRoomId(java.util.UUID.fromString(roomId), requesterId);
     }
 
     @GetMapping("/by-motel/{motelId}")
-    public List<RoomMemberResponse> getRoomMembersByMotelId(@PathVariable String motelId) {
+    public List<MemberInfoResponse> getRoomMembersByMotelId(@PathVariable String motelId) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
         return roomMemberService.getRoomMembersByMotelId(java.util.UUID.fromString(motelId), requesterId);
     }

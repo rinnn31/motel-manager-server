@@ -13,7 +13,7 @@ import com.github.rinnn31.motelserver.event.model.MotelNameChangedEvent;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.repository.MotelRepository;
-import com.github.rinnn31.motelserver.repository.RoomMemberRepository;
+import com.github.rinnn31.motelserver.repository.MemberRepository;
 import com.github.rinnn31.motelserver.repository.UserRepository;
 
 @Service
@@ -22,14 +22,14 @@ public class MotelService {
 
     private final UserRepository userRepository;
 
-    private final RoomMemberRepository roomMemberRepository;
+    private final MemberRepository roomMemberRepository;
 
     private final ApplicationEventPublisher eventPublisher;
 
     public MotelService(
         MotelRepository motelRepository, 
         UserRepository userRepository, 
-        RoomMemberRepository roomMemberRepository,
+        MemberRepository roomMemberRepository,
         ApplicationEventPublisher eventPublisher
     ) {
         this.motelRepository = motelRepository;

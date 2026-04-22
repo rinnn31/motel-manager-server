@@ -15,14 +15,14 @@ import com.github.rinnn31.motelserver.event.model.RoomPriceChangedEvent;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.repository.MotelRepository;
-import com.github.rinnn31.motelserver.repository.RoomMemberRepository;
+import com.github.rinnn31.motelserver.repository.MemberRepository;
 import com.github.rinnn31.motelserver.repository.RoomRepository;
 
 @Service
 public class RoomService {
     private final RoomRepository roomRepository;
 
-    private final RoomMemberRepository roomMemberRepository;
+    private final MemberRepository roomMemberRepository;
     
     private final MotelRepository motelRepository;
 
@@ -30,7 +30,7 @@ public class RoomService {
 
     public RoomService(
         RoomRepository roomRepository,
-        RoomMemberRepository roomMemberRepository, 
+        MemberRepository roomMemberRepository, 
         MotelRepository motelRepository,
         ApplicationEventPublisher eventPublisher
     ) {
@@ -103,7 +103,7 @@ public class RoomService {
         }
         return motel;
     }
-    
+
     public void addRoom(UUID ownerId, AddRoomRequest request) {   
         var motel = checkOwnershipAndGetMotel(UUID.fromString(request.motelId()), ownerId);
         if (roomRepository.existsByMotel_IdAndRoomNumber(UUID.fromString(request.motelId()), request.roomNumber())) {
