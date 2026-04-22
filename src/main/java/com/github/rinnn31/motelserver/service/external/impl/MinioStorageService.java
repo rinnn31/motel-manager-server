@@ -48,7 +48,15 @@ public class MinioStorageService implements ObjectStorageService {
 
     @Override
     public String getPublicUrl(String key) {
-        return properties.baseUrl() + "/" + properties.bucketName() + "/" + key;
+        if (key == null || !objectExists(key) ) {
+            throw new AppError(ErrorCode.FILE_NOT_FOUND);
+        }
+
+        String endpoint = properties.endpoint().replaceAll("/+$", "");
+        String bucket = properties.bucketName().replaceAll("^/+", "");
+        key = key.replaceAll("^/+", "");
+
+        return endpoint + "/" + bucket + "/" + key;
     }
 
     @Override

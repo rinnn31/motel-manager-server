@@ -50,6 +50,6 @@ storage:
     bucket-name: ${MINIO_BUCKET_NAME}
   
 firebase:
-  service-account-json: ${FIREBASE_SERVICE_ACCOUNT_JSON}
+  service-account-key-path: ${FIREBASE_SERVICE_ACCOUNT_KEY_PATH}
 push-notification:
   provider: ${PUSH_NOTIFICATION_PROVIDER}

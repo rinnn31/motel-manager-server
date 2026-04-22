@@ -7,7 +7,7 @@ public enum ErrorCode {
     INVALID_OPERATION("Hành động không hợp lệ", HttpStatus.BAD_REQUEST),
     INVALID_ID("ID không hợp lệ", HttpStatus.BAD_REQUEST),
     INVALID_DATE_RANGE("Khoảng thời gian không hợp lệ", HttpStatus.BAD_REQUEST),
-    
+    FILE_NOT_FOUND("Tệp tin không tồn tại", HttpStatus.NOT_FOUND),
     FILE_STORAGE_ERROR("Lỗi lưu trữ tệp", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_FILE_TYPE("Định dạng tệp không hợp lệ", HttpStatus.BAD_REQUEST),
 
