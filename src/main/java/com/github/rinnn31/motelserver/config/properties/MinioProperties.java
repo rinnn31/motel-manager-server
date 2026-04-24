@@ -5,7 +5,8 @@ import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 @ConfigurationProperties(prefix = "storage.minio")
 public record MinioProperties(
-    String endpoint,
+    String privateEndpoint,
+    String publicEndpoint,
     String accessKey,
     String secretKey,
     String bucketName
