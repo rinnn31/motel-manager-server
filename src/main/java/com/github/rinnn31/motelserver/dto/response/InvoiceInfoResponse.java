@@ -10,7 +10,7 @@ public record InvoiceInfoResponse(
     Long createdAt,
     Long paidAt,
     Boolean isPaid,
-    List<InvoiceDetailsInfoResponse> invoiceDetails
+    List<InvoiceDetailsInfoResponse> details
 ) {
     public static record InvoiceDetailsInfoResponse(
         String name,

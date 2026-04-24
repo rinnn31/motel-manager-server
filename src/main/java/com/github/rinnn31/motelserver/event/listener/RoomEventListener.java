@@ -11,20 +11,20 @@ import com.github.rinnn31.motelserver.entity.NotificationType;
 import com.github.rinnn31.motelserver.event.model.RoomMemberChangedEvent;
 import com.github.rinnn31.motelserver.event.model.RoomNameChangedEvent;
 import com.github.rinnn31.motelserver.event.model.RoomPriceChangedEvent;
-import com.github.rinnn31.motelserver.repository.RoomMemberRepository;
+import com.github.rinnn31.motelserver.repository.MemberRepository;
 import com.github.rinnn31.motelserver.service.NotificationService;
 import com.github.rinnn31.motelserver.service.UserDeviceService;
 import com.github.rinnn31.motelserver.service.external.PushNotificationService;
 
 @Component
 public class RoomEventListener extends AppEventListener {
-    private final RoomMemberRepository roomMemberRepository;
+    private final MemberRepository roomMemberRepository;
 
     public RoomEventListener(
             NotificationService notificationService, 
             PushNotificationService pushNotificationService,
             UserDeviceService userDeviceService,
-            RoomMemberRepository roomMemberRepository) {
+            MemberRepository roomMemberRepository) {
         super(notificationService, pushNotificationService, userDeviceService);
         this.roomMemberRepository = roomMemberRepository;
     }

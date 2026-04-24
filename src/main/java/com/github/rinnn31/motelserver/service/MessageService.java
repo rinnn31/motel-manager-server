@@ -1,9 +1,11 @@
 package com.github.rinnn31.motelserver.service;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.data.domain.PageRequest;
@@ -11,9 +13,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.github.rinnn31.motelserver.dto.request.SendMessageRequest;
+import com.github.rinnn31.motelserver.dto.response.AttachmentInfo;
 import com.github.rinnn31.motelserver.dto.response.MediaPresignedUrlResponse;
 import com.github.rinnn31.motelserver.dto.response.MessageInfoResponse;
 import com.github.rinnn31.motelserver.dto.response.MessageTargetInfo;
+import com.github.rinnn31.motelserver.dto.response.ObjectMetadata;
 import com.github.rinnn31.motelserver.entity.Message;
 import com.github.rinnn31.motelserver.entity.MessageRecipient;
 import com.github.rinnn31.motelserver.exception.AppError;
@@ -98,6 +102,7 @@ public class MessageService {
         message.setAttachmentUrls(atatchmentUrls.stream().map(MediaPresignedUrlResponse::key).toList());
         message.setRecipients(rooms.stream().map(room -> {
             var recipient = new MessageRecipient();
+            recipient.setMessage(message);
             recipient.setRoomRecipient(room);
             return recipient;
         }).toList());
@@ -132,14 +137,16 @@ public class MessageService {
 
         var atatchmentUrls = createAttachmentUrls(request.attachmentContentTypes());
 
-        var recipient = new MessageRecipient();
-        recipient.setMotelRecipient(motel);
+
         var message = new Message();
+        var motelRecipient = new MessageRecipient();
+        motelRecipient.setMessage(message);
+        motelRecipient.setMotelRecipient(motel);
         message.setTitle(request.title());
         message.setContent(request.content());
         message.setRoomSender(room);
         message.setAttachmentUrls(atatchmentUrls.stream().map(MediaPresignedUrlResponse::key).toList());
-        message.setRecipients(List.of(recipient));
+        message.setRecipients(List.of(motelRecipient));
         message.setCreatedAt(Instant.now());
         messageRepository.save(message);
 
@@ -170,11 +177,22 @@ public class MessageService {
             }
         }
 
+        List<AttachmentInfo> attachments = null;
+        if (message.getAttachmentUrls() != null && !message.getAttachmentUrls().isEmpty()) {
+            attachments = message.getAttachmentUrls().stream().map(key -> {
+                ObjectMetadata stat = storageService.statObject(key);
+                String type = stat.contentType().split("/")[0];
+                if (!List.of(ALLOWED_ATTACHMENT_TYPES).contains(stat.contentType())) {
+                    return null;
+                }
+                return new AttachmentInfo(key, type);
+            }).filter(Objects::nonNull).toList();
+        }
         return new MessageInfoResponse(
                 message.getId().toString(),
                 message.getTitle(),
                 message.getContent(),
-                message.getAttachmentUrls(),
+                attachments != null && !attachments.isEmpty() ? attachments : null,
                 message.getCreatedAt().toEpochMilli(),
                 message.getMotelSender() != null ? new MessageTargetInfo(
                         message.getMotelSender().getId().toString(),
@@ -200,40 +218,44 @@ public class MessageService {
     }
 
     public List<MessageInfoResponse> getMessages(UUID requesterId, UUID objectId, String objectType, String box,
-            Long from, int page, int size) {
+            LocalDate from, LocalDate to, int page, int size) {
         switch (objectType) {
             case "room" -> {
-                return getMessagesForRoom(requesterId, objectId, box, from, page, size);
+                return getMessagesForRoom(requesterId, objectId, box, from, to, page, size);
             }
             case "motel" -> {
-                return getMessagesForMotel(requesterId, objectId, box, from, page, size);
+                return getMessagesForMotel(requesterId, objectId, box, from, to, page, size);
             }
             default -> throw new AppError(ErrorCode.INVALID_OPERATION);
         }
     }
 
-    public List<MessageInfoResponse> getMessagesForRoom(UUID requesterId, UUID roomId, String box, Long from, int page,
+    public List<MessageInfoResponse> getMessagesForRoom(UUID requesterId, UUID roomId, String box, LocalDate from, LocalDate to, int page,
             int size) {
         var member = roomMemberRepository.findByUser_IdAndRoom_IdAndEndDateIsNull(requesterId, roomId)
                 .orElseThrow(() -> new AppError(ErrorCode.INVALID_OPERATION));
         // Room member can only see messages from the time they joined
-        Instant fromTime = from != null ? Instant.ofEpochMilli(from) : Instant.EPOCH;
+        Instant fromTime = from != null ? from.atStartOfDay().toInstant(ZoneOffset.UTC) : Instant.EPOCH;
+        Instant toTime = to != null ? to.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC) : Instant.now().plusSeconds(1);
         if (fromTime.isAfter(Instant.now())) {
             fromTime = Instant.EPOCH;
         }
         if (member.getStartDate().atStartOfDay().toInstant(ZoneOffset.UTC).isAfter(fromTime)) {
             fromTime = member.getStartDate().atStartOfDay().toInstant(ZoneOffset.UTC);
         }
-        Pageable pageable = PageRequest.of(page, size);
+        if (fromTime.isAfter(toTime)) {
+            toTime = fromTime.plusSeconds(1);
+        }
 
+        Pageable pageable = PageRequest.of(page, size);
         List<Message> messages;
         switch (box) {
             case SENT_BOX -> {
-                messages = messageRepository.findByRoomSender_IdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(roomId,
-                        fromTime, pageable);
+                messages = messageRepository.findByRoomSender_IdAndCreatedAtBetweenOrderByCreatedAtDesc(roomId,
+                        fromTime, toTime, pageable);
             }
             case RECEIVED_BOX -> {
-                messages = messageRepository.findByRoomRecipient_Id(roomId, fromTime, pageable);
+                messages = messageRepository.findByRoomRecipient_Id(roomId, fromTime, toTime, pageable);
             }
             default -> throw new AppError(ErrorCode.INVALID_OPERATION);
         }
@@ -259,26 +281,30 @@ public class MessageService {
                 .toList();
     }
 
-    public List<MessageInfoResponse> getMessagesForMotel(UUID requesterId, UUID motelId, String box, Long from,
+    public List<MessageInfoResponse> getMessagesForMotel(UUID requesterId, UUID motelId, String box, LocalDate from, LocalDate to,
             int page, int size) {
         if (!motelRepository.existsByIdAndOwner_Id(motelId, requesterId)) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
 
-        Instant fromTime = from != null ? Instant.ofEpochMilli(from) : Instant.EPOCH;
+        Instant fromTime = from != null ? from.atStartOfDay().toInstant(ZoneOffset.UTC) : Instant.EPOCH;
+        Instant toTime = to != null ? to.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC) : Instant.now().plusSeconds(1);
         if (fromTime.isAfter(Instant.now())) {
             fromTime = Instant.EPOCH;
+        }
+        if (fromTime.isAfter(toTime)) {
+            toTime = fromTime.plusSeconds(1);
         }
 
         Pageable pageable = PageRequest.of(page, size);
         List<Message> messages;
         switch (box) {
             case SENT_BOX -> {
-                messages = messageRepository.findByMotelSender_IdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(
-                        motelId, fromTime, pageable);
+                messages = messageRepository.findByMotelSender_IdAndCreatedAtBetweenOrderByCreatedAtDesc(
+                        motelId, fromTime, toTime, pageable);
             }
             case RECEIVED_BOX -> {
-                messages = messageRepository.findByMotelRecipient_Id(motelId, fromTime, pageable);
+                messages = messageRepository.findByMotelRecipient_Id(motelId, fromTime, toTime, pageable);
             }
             default -> throw new AppError(ErrorCode.INVALID_OPERATION);
         }

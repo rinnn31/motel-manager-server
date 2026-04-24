@@ -9,10 +9,9 @@ public record MessageInfoResponse(
     String id,
     String title,
     String content,
-    List<String> attachmentKeys,
+    List<AttachmentInfo> attachments,
     Long createdAt,
     MessageTargetInfo sender,
     List<MessageTargetInfo> recipients
 ) {
-    
 }

@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import com.github.rinnn31.motelserver.dto.request.AddMemberRequest;
 import com.github.rinnn31.motelserver.dto.response.MemberInfoResponse;
 import com.github.rinnn31.motelserver.dto.response.UserInfoResponse;
 import com.github.rinnn31.motelserver.entity.Motel;
@@ -115,17 +116,17 @@ public class MemberService {
         return motel;
     }
 
-    public void addMember(UUID requesterId, UUID roomId, UUID userId) {
-        var room = roomRepository.findById(roomId)
+    public void addMember(UUID requesterId, AddMemberRequest request) {
+        var room = roomRepository.findById(UUID.fromString(request.roomId()))
                 .orElseThrow(() -> new AppError(ErrorCode.ROOM_NOT_FOUND));
         checkOwnershipAndGetMotel(room.getMotel().getId(), requesterId);
 
-        var user = userRepository.findById(userId)
+        var user = userRepository.findByPhoneNumber(request.phoneNumber())
                 .orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
-        if (memberRepository.existsByUser_IdAndRoom_IdAndEndDateIsNull(userId, roomId)) {
+        if (memberRepository.existsByUser_IdAndRoom_IdAndEndDateIsNull(user.getId(), UUID.fromString(request.roomId()))) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
-        if (memberRepository.existsByUser_IdAndEndDateIsNull(userId)) {
+        if (memberRepository.existsByUser_IdAndEndDateIsNull(user.getId())) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
 
@@ -140,7 +141,7 @@ public class MemberService {
             room.getMotel().getId().toString(),
             room.getRoomNumber(),
             room.getId().toString(),
-            userId.toString(),
+            user.getId().toString(),
             user.getFullName()
         ));
     }

@@ -33,7 +33,7 @@ public class Invoice {
     @JoinColumn(name = "room_id", nullable = false)
     private Room room;
 
-    @OneToMany(mappedBy = "invoice")
+    @OneToMany(mappedBy = "invoice", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     private List<InvoiceDetails> details;
 
     private boolean paid = false;

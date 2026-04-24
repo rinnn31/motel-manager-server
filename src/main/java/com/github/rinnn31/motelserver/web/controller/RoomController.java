@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.github.rinnn31.motelserver.dto.request.AddRoomRequest;
+import com.github.rinnn31.motelserver.dto.request.UpdateRoomRequest;
 import com.github.rinnn31.motelserver.dto.response.RoomInfoResponse;
 import com.github.rinnn31.motelserver.security.UserExtractor;
 import com.github.rinnn31.motelserver.service.RoomService;
@@ -53,16 +54,10 @@ public class RoomController {
         roomService.addRoom(requesterId, request);
     }
 
-    @PatchMapping("/{roomId}/name")
-    public void updateRoomName(@PathVariable UUID roomId, @RequestParam String newName) {
+    @PatchMapping("/{roomId}")
+    public void updateRoom(@PathVariable UUID roomId, @Valid @RequestBody UpdateRoomRequest request) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
-        roomService.changeRoomNumber(requesterId, roomId, newName);
-    }
-
-    @PatchMapping("/{roomId}/price")
-    public void updateRoomPrice(@PathVariable UUID roomId, @RequestParam int newPrice) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        roomService.changeRoomPrice(requesterId, roomId, newPrice);
+        roomService.updateRoom(requesterId, roomId, request);
     }
 
     @DeleteMapping("/{roomId}")

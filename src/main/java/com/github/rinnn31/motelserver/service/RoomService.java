@@ -7,6 +7,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.github.rinnn31.motelserver.dto.request.AddRoomRequest;
+import com.github.rinnn31.motelserver.dto.request.UpdateRoomRequest;
 import com.github.rinnn31.motelserver.dto.response.RoomInfoResponse;
 import com.github.rinnn31.motelserver.entity.Motel;
 import com.github.rinnn31.motelserver.entity.Room;
@@ -129,38 +130,29 @@ public class RoomService {
         roomRepository.delete(room);
     }
 
-    public void changeRoomPrice(UUID ownerId, UUID roomId, int newPrice) {
+    public void updateRoom(UUID requesterId, UUID roomId, UpdateRoomRequest request) {
         var room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new AppError(ErrorCode.INVALID_OPERATION));
-        checkOwnershipAndGetMotel(room.getMotel().getId(), ownerId);
+        checkOwnershipAndGetMotel(room.getMotel().getId(), requesterId);
 
-        room.setPrice(newPrice);
-        roomRepository.save(room);
-
-        eventPublisher.publishEvent(new RoomPriceChangedEvent(
-            room.getMotel().getId().toString(),
-            room.getId().toString(),
-            newPrice
-        ));
-    }
-
-    public void changeRoomNumber(UUID ownerId, UUID roomId, String newRoomNumber) {
-        var room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new AppError(ErrorCode.INVALID_OPERATION));
-        var motelId = room.getMotel().getId();
-        checkOwnershipAndGetMotel(motelId, ownerId);
-
-        if (roomRepository.existsByMotel_IdAndRoomNumber(motelId, newRoomNumber)) {
-            throw new AppError(ErrorCode.ROOM_NUMBER_EXISTS);
+        if (request.roomNumber() != null) {
+            if (roomRepository.existsByMotel_IdAndRoomNumber(room.getMotel().getId(), request.roomNumber())) {
+                throw new AppError(ErrorCode.ROOM_NUMBER_EXISTS);
+            }
+            room.setRoomNumber(request.roomNumber());
+            eventPublisher.publishEvent(new RoomNameChangedEvent(
+                room.getMotel().getId().toString(),
+                room.getId().toString(),
+                request.roomNumber()
+            ));
         }
-
-        room.setRoomNumber(newRoomNumber);
-        roomRepository.save(room);
-
-        eventPublisher.publishEvent(new RoomNameChangedEvent(
-            room.getMotel().getId().toString(),
-            room.getId().toString(),
-            newRoomNumber
-        ));
+        if (request.roomPrice() != null) {
+            room.setPrice(request.roomPrice());
+            eventPublisher.publishEvent(new RoomPriceChangedEvent(
+                room.getMotel().getId().toString(),
+                room.getId().toString(),
+                request.roomPrice()
+            ));
+        }
     }
 }

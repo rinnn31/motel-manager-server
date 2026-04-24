@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import com.github.rinnn31.motelserver.entity.NotificationType;
 import com.github.rinnn31.motelserver.event.model.MotelNameChangedEvent;
 import com.github.rinnn31.motelserver.repository.MotelRepository;
-import com.github.rinnn31.motelserver.repository.RoomMemberRepository;
+import com.github.rinnn31.motelserver.repository.MemberRepository;
 import com.github.rinnn31.motelserver.service.NotificationService;
 import com.github.rinnn31.motelserver.service.UserDeviceService;
 import com.github.rinnn31.motelserver.service.external.PushNotificationService;
@@ -19,14 +19,14 @@ public class MotelEventListener extends AppEventListener {
 
     private final MotelRepository motelRepository;
 
-    private final RoomMemberRepository roomMemberRepository;
+    private final MemberRepository roomMemberRepository;
 
     public MotelEventListener(
             NotificationService notificationService, 
             PushNotificationService pushNotificationService,
             UserDeviceService userDeviceService, 
             MotelRepository motelRepository,
-            RoomMemberRepository roomMemberRepository
+            MemberRepository roomMemberRepository
     ) {
         super(notificationService, pushNotificationService, userDeviceService);
         this.motelRepository = motelRepository;

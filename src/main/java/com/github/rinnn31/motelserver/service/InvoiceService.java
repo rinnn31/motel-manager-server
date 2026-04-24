@@ -60,8 +60,8 @@ public class InvoiceService {
                 List<InvoiceInfoResponse.InvoiceDetailsInfoResponse> details = invoice.getDetails().stream()
                     .map(detail -> new InvoiceInfoResponse.InvoiceDetailsInfoResponse(
                         detail.getName(),
-                        detail.getUnitPrice(),
                         detail.getAmount(),
+                        detail.getUnitPrice(),
                         detail.getCalculationType()
                     )).toList();
                 return new InvoiceInfoResponse(
@@ -86,7 +86,7 @@ public class InvoiceService {
         invoice.setRoom(room);
         invoice.setCreatedAt(Instant.now());
         invoice.setPaid(false);
-        invoice.setDetails(request.invoiceDetails().stream().map(
+        invoice.setDetails(request.details().stream().map(
             detail -> {
                 var entity = new com.github.rinnn31.motelserver.entity.InvoiceDetails();
                 entity.setName(detail.name());
@@ -101,7 +101,7 @@ public class InvoiceService {
         invoiceRepository.save(invoice);
     }
 
-    public void payInvoice(UUID invoiceId, UUID requesterId) {
+    public void payInvoice(UUID requesterId, UUID invoiceId) {
         var invoice = invoiceRepository.findById(invoiceId).orElseThrow(() -> new AppError(ErrorCode.INVOICE_NOT_FOUND));
         if (!invoice.getRoom().getMotel().getOwner().getId().equals(requesterId)) {
             throw new AppError(ErrorCode.INVALID_OPERATION);   
@@ -110,5 +110,14 @@ public class InvoiceService {
         invoice.setPaid(true);
         invoice.setPaidAt(Instant.now());
         invoiceRepository.save(invoice);
+    }
+
+    public void deleteInvoice(UUID requesterId, UUID invoiceId) {
+        var invoice = invoiceRepository.findById(invoiceId).orElseThrow(() -> new AppError(ErrorCode.INVOICE_NOT_FOUND));
+        if (!invoice.getRoom().getMotel().getOwner().getId().equals(requesterId) || invoice.isPaid()) {
+            throw new AppError(ErrorCode.INVALID_OPERATION);   
+        }
+
+        invoiceRepository.delete(invoice);
     }
 }

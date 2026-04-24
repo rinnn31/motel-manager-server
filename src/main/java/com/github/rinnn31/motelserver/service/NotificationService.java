@@ -1,5 +1,6 @@
 package com.github.rinnn31.motelserver.service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,6 +33,7 @@ public class NotificationService {
         notification.setExtraData(extraData);
         notification.setType(type);
         notification.setUser(user);
+        notification.setCreatedAt(Instant.now());
         notificationRepository.save(notification);
     }
 

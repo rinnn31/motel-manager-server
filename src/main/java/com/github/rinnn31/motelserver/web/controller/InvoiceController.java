@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,9 +46,15 @@ public class InvoiceController {
         invoiceService.createInvoice(requesterId, request);
     }
 
-    @PatchMapping("/{invoiceId}")
+    @PatchMapping("/{invoiceId}/pay")
     public void payInvoice(@PathVariable UUID invoiceId) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
         invoiceService.payInvoice(requesterId, invoiceId);
+    }
+
+    @DeleteMapping("/{invoiceId}")
+    public void deleteInvoice(@PathVariable UUID invoiceId) {
+        UUID requesterId = UserExtractor.extractUserIdFromContext();
+        invoiceService.deleteInvoice(requesterId, invoiceId);
     }
 }

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.github.rinnn31.motelserver.dto.request.CreateMotelRequest;
 import com.github.rinnn31.motelserver.dto.request.UpdateMotelNameRequest;
 import com.github.rinnn31.motelserver.dto.response.MotelInfoResponse;
+import com.github.rinnn31.motelserver.dto.response.UserInfoResponse;
 import com.github.rinnn31.motelserver.security.UserExtractor;
 import com.github.rinnn31.motelserver.service.MotelService;
 
@@ -63,5 +64,11 @@ public class MotelController {
     public void updateMotelName(@PathVariable UUID motelId, @Valid @RequestBody UpdateMotelNameRequest request) {
         UUID userId = UserExtractor.extractUserIdFromContext();
         motelService.updateMotelName(motelId, userId, request.newName());
+    }
+
+    @GetMapping("/{motelId}/owner")
+    public UserInfoResponse getMotelOwnerInfo(@PathVariable UUID motelId) {
+        UUID userId = UserExtractor.extractUserIdFromContext();
+        return motelService.getMotelOwnerInfo(motelId, userId); 
     }
 }

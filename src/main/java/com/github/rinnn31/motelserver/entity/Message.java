@@ -44,7 +44,7 @@ public class Message {
     @JoinColumn(name = "room_sender_id", referencedColumnName = "id")
     private Room roomSender;
 
-    @OneToMany(mappedBy = "message")
+    @OneToMany(mappedBy = "message", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     private List<MessageRecipient> recipients;
 
     @Column(name = "attachment_urls", columnDefinition="TEXT")

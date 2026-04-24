@@ -42,7 +42,7 @@ public class MemberController {
     @PostMapping
     public void addRoomMember(@Valid @RequestBody AddMemberRequest request) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
-        roomMemberService.addMember(requesterId, UUID.fromString(request.userId()), UUID.fromString(request.roomId()));
+        roomMemberService.addMember(requesterId, request);
     }
 
     @PostMapping("/leave")

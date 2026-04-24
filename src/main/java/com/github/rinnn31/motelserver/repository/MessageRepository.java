@@ -13,23 +13,23 @@ import com.github.rinnn31.motelserver.entity.Message;
 
 @Repository
 public interface MessageRepository extends JpaRepository<Message, UUID> {
-    List<Message> findByMotelSender_IdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(UUID motelSenderId, Instant from, Pageable pageable);
+    List<Message> findByMotelSender_IdAndCreatedAtBetweenOrderByCreatedAtDesc(UUID motelSenderId, Instant from, Instant to, Pageable pageable);
 
-    List<Message> findByRoomSender_IdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(UUID roomSenderId, Instant from, Pageable pageable);
-
-    @Query("""
-        SELECT DISTINCT m FROM Message m
-        JOIN m.recipients r
-        WHERE r.motelRecipient.id = :recipientId AND m.createdAt >= :from
-        ORDER BY m.createdAt DESC
-    """)
-    List<Message> findByMotelRecipient_Id(UUID recipientId, Instant from, Pageable pageable);
+    List<Message> findByRoomSender_IdAndCreatedAtBetweenOrderByCreatedAtDesc(UUID roomSenderId, Instant from, Instant to, Pageable pageable);
 
     @Query("""
         SELECT DISTINCT m FROM Message m
         JOIN m.recipients r
-        WHERE r.roomRecipient.id = :recipientId AND m.createdAt >= :from
+        WHERE r.motelRecipient.id = :recipientId AND m.createdAt >= :from AND m.createdAt <= :to
         ORDER BY m.createdAt DESC
     """)
-    List<Message> findByRoomRecipient_Id(UUID recipientId, Instant from, Pageable pageable);
+    List<Message> findByMotelRecipient_Id(UUID recipientId, Instant from, Instant to, Pageable pageable);
+
+    @Query("""
+        SELECT DISTINCT m FROM Message m
+        JOIN m.recipients r
+        WHERE r.roomRecipient.id = :recipientId AND m.createdAt >= :from AND m.createdAt <= :to
+        ORDER BY m.createdAt DESC
+    """)
+    List<Message> findByRoomRecipient_Id(UUID recipientId, Instant from, Instant to, Pageable pageable);
 }

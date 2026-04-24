@@ -7,6 +7,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.github.rinnn31.motelserver.dto.response.MotelInfoResponse;
+import com.github.rinnn31.motelserver.dto.response.UserInfoResponse;
 import com.github.rinnn31.motelserver.entity.Motel;
 import com.github.rinnn31.motelserver.entity.UserRole;
 import com.github.rinnn31.motelserver.event.model.MotelNameChangedEvent;
@@ -115,5 +116,24 @@ public class MotelService {
             int memberCount = roomMemberRepository.countByRoom_Motel_IdAndEndDateIsNull(motel.getId());
             return new MotelInfoResponse(motel.getId().toString(), motel.getDisplayName(), memberCount);
         }).toList();
+    }
+
+    public UserInfoResponse getMotelOwnerInfo(UUID motelId, UUID requesterId) {
+        var motel = motelRepository.findById(motelId)
+                .orElseThrow(() -> new AppError(ErrorCode.MOTEL_NOT_FOUND));
+        if (!motel.getOwner().getId().equals(requesterId) && !roomMemberRepository.existsByRoom_Motel_IdAndUser_IdAndEndDateIsNull(motelId, requesterId)) {
+            throw new AppError(ErrorCode.INVALID_OPERATION);
+        }
+
+        var landlord = motel.getOwner();
+        return new UserInfoResponse(
+            landlord.getId().toString(),
+            landlord.getPhoneNumber(),
+            landlord.getFullName(),
+            landlord.getGender(),
+            landlord.getRole().name(),
+            null,
+            landlord.getAvatarUrl()
+        );
     }
 }

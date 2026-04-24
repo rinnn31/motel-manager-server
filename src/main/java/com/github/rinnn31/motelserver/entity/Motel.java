@@ -39,7 +39,7 @@ public class Motel {
     private List<Room> rooms;
 
     @OneToMany(mappedBy="motel")
-    private List<MotelCharge> charges;
+    private List<MotelFee> fees;
 
     public UUID getId() {
         return id;
@@ -73,11 +73,11 @@ public class Motel {
         this.rooms = rooms;
     }
 
-    public List<MotelCharge> getCharges() {
-        return charges;
+    public List<MotelFee> getFees() {
+        return fees;
     }
 
-    public void setCharges(List<MotelCharge> charges) {
-        this.charges = charges;
+    public void setFees(List<MotelFee> fees) {
+        this.fees = fees;
     }
 }

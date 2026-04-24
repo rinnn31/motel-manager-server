@@ -15,7 +15,7 @@ public record CreateInvoiceRequest(
     String roomId,
 
     @NotEmpty(message = "Danh sách chi tiết hóa đơn không được để trống")
-    List<CreateInvoiceDetailsRequest> invoiceDetails
+    List<CreateInvoiceDetailsRequest> details
 ) {
     public static record CreateInvoiceDetailsRequest(
         @NotBlank(message = "Tên khoản thu không được để trống")
