@@ -27,7 +27,7 @@ public class FcmService implements PushNotificationService {
             .build();
 
         try {
-            var response = FirebaseMessaging.getInstance().sendMulticast(message);
+            var response = FirebaseMessaging.getInstance().sendEachForMulticast(message);
             return response.getResponses().stream()
                 .filter(r -> !r.isSuccessful())
                 .map(r -> deviceTokens.get(response.getResponses().indexOf(r)))
