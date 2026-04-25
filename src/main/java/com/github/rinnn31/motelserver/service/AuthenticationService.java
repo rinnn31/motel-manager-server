@@ -45,17 +45,17 @@ public class AuthenticationService {
         this.userDeviceService = userDeviceService;
     }
 
-    public AuthenticationResponse register(RegisterRequest registerModel) {
-        if (userRepository.existsByPhoneNumber(registerModel.phoneNumber())) {
+    public AuthenticationResponse register(RegisterRequest request) {
+        if (userRepository.existsByPhoneNumber(request.phoneNumber())) {
             throw new AppError(ErrorCode.PHONE_NUMBER_USED);
         } 
 
         User user = new User();
-        user.setFullName(registerModel.fullName());
-        user.setPhoneNumber(registerModel.phoneNumber());
-        user.setGender(registerModel.gender());
-        user.setPassword(passwordEncoder.encode(registerModel.password()));
-        user.setRole(registerModel.role() == 0 ? UserRole.LANDLORD : UserRole.TENANT);
+        user.setFullName(request.fullName());
+        user.setPhoneNumber(request.phoneNumber());
+        user.setGender(request.gender());
+        user.setPassword(passwordEncoder.encode(request.password()));
+        user.setRole(request.role() == 0 ? UserRole.LANDLORD : UserRole.TENANT);
         user.setVerified(false);
         userRepository.save(user);
 
@@ -67,11 +67,11 @@ public class AuthenticationService {
         );
     }
 
-    public AuthenticationResponse login(LoginRequest data) {
-        var user = userRepository.findByPhoneNumber(data.phoneNumber())
+    public AuthenticationResponse login(LoginRequest request) {
+        var user = userRepository.findByPhoneNumber(request.phoneNumber())
                 .orElseThrow(() -> new AppError(ErrorCode.INVALID_CREDENTIALS));
 
-        if (!passwordEncoder.matches(data.password(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new AppError(ErrorCode.INVALID_CREDENTIALS);
         }
 
@@ -83,23 +83,23 @@ public class AuthenticationService {
         );
     }
     
-    public void resetPassword(ResetPasswordRequest data) {
-        var user = userRepository.findByPhoneNumber(data.phoneNumber())
+    public void resetPassword(ResetPasswordRequest request) {
+        var user = userRepository.findByPhoneNumber(request.phoneNumber())
             .orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
 
         if (!otpService.verifyOtp(
                 user.getId().toString(),
                 user.getPhoneNumber(),
                 VERIFY_ACTION_RESET_PASSWORD,
-                data.verificationCode(),
+                request.verificationCode(),
                 false)) {
             throw new AppError(ErrorCode.VERIFY_FAILED);
         }
 
         // Allow client to verify OTP only, so client can separate 
         // the flow of verifying OTP and resetting password.
-        if (data.newPassword() != null && !data.newPassword().isBlank()) {
-            user.setPassword(passwordEncoder.encode(data.newPassword()));
+        if (request.newPassword() != null && !request.newPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(request.newPassword()));
             userRepository.save(user);
             otpService.invalidateOtps(user.getId().toString(), user.getPhoneNumber(), VERIFY_ACTION_RESET_PASSWORD);
         }

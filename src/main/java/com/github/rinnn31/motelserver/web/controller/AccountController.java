@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.github.rinnn31.motelserver.dto.request.ChangePasswordRequest;
+import com.github.rinnn31.motelserver.dto.request.ContactpointRequest;
+import com.github.rinnn31.motelserver.dto.request.SendOtpRequest;
 import com.github.rinnn31.motelserver.dto.request.UpdateProfileRequest;
 import com.github.rinnn31.motelserver.dto.request.VerifyContactpointRequest;
 import com.github.rinnn31.motelserver.dto.response.MediaPresignedUrlResponse;
@@ -42,49 +44,49 @@ public class AccountController {
         return accountService.getUserInfo(java.util.UUID.fromString(userId), false);
     }
 
-    @PatchMapping("/me/change-contactpoint")
-    public void changeContactpoint(@RequestParam String newPhoneNumber) {
+    @PatchMapping("/me/contactpoint")
+    public void changeContactpoint(@Valid @RequestBody ContactpointRequest request) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
-        accountService.changeContactpoint(requesterId, newPhoneNumber);
+        accountService.changeContactpoint(requesterId, request.phoneNumber());
     }
 
-    @PatchMapping("/me/change-password")
+    @PatchMapping("/me/password")
     public void changePassword(@Valid @RequestBody ChangePasswordRequest input) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
         accountService.changePassword(requesterId, input.oldPassword(), input.newPassword());
     }
 
-    @DeleteMapping("/me/delete")
+    @DeleteMapping("/me")
     public void deleteAccount() {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
         accountService.deleteAccount(requesterId);
     }
 
-    @PostMapping("/me/send-contactpoint-otp")
-    public void sendContactpointVerificationOtp(@RequestParam String phoneNumber) {
+    @PostMapping("/me/contactpoint/otp")
+    public void sendContactpointVerificationOtp(@Valid @RequestBody SendOtpRequest request) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
-        accountService.sendContactpointVerificationCode(requesterId, phoneNumber, null);
+        accountService.sendContactpointVerificationCode(requesterId, request.phoneNumber(), null);
     }
 
-    @PostMapping("/me/verify-contactpoint")
+    @PostMapping("/me/contactpoint/verify")
     public void verifyContactpoint(@Valid @RequestBody VerifyContactpointRequest input) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
         accountService.verifyContactpoint(requesterId, input.phoneNumber(), input.otp());
     }
 
-    @PatchMapping("/me/update-profile")
+    @PatchMapping("/me")
     public void updateProfile(@Valid @RequestBody UpdateProfileRequest input) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
         accountService.updateProfile(requesterId, input);
     }
 
-    @GetMapping("/me/avatar-upload-url")
+    @PostMapping("/me/avatar/upload-url")
     public MediaPresignedUrlResponse getAvatarUploadPresignedUrl(@RequestParam String imageType) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
         return accountService.getAvatarUploadPresignedUrl(requesterId, imageType);
     }
 
-    @PatchMapping("/me/update-avatar")
+    @PatchMapping("/me/avatar")
     public void updateAvatar(@RequestParam String avatarKey) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
         accountService.updateAvatarUrl(requesterId, avatarKey);

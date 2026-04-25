@@ -39,8 +39,8 @@ public class SecurityConfig {
                     "/api/auth/login", 
                     "/api/auth/register", 
                     "/api/auth/reset-password", 
-                    "/api/auth/send-reset-password-otp", 
-                    "/api/auth/refresh",
+                    "/api/auth/request-reset-password",
+                    "/api/auth/refresh-token",
                     "/api/media/**"
                 ).permitAll()
                 .anyRequest().authenticated()

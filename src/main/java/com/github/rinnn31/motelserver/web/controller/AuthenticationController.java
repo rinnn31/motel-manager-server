@@ -15,13 +15,14 @@ import com.github.rinnn31.motelserver.dto.response.AuthenticationResponse;
 import com.github.rinnn31.motelserver.dto.response.TokenResponse;
 import com.github.rinnn31.motelserver.dto.request.DeviceRegisterRequest;
 import com.github.rinnn31.motelserver.dto.request.LoginRequest;
+import com.github.rinnn31.motelserver.dto.request.LogoutRequest;
+import com.github.rinnn31.motelserver.dto.request.RefreshTokenRequest;
 import com.github.rinnn31.motelserver.dto.request.RegisterRequest;
 import com.github.rinnn31.motelserver.dto.request.ResetPasswordRequest;
 import com.github.rinnn31.motelserver.security.UserExtractor;
 import com.github.rinnn31.motelserver.service.AuthenticationService;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -44,23 +45,23 @@ public class AuthenticationController {
         return authenticationService.register(body);
     }
 
-    @PostMapping("/refresh")
-    public TokenResponse refresh(@NotBlank @RequestParam String refreshToken) {
-        return authenticationService.refresh(refreshToken);
+    @PostMapping("/refresh-token")
+    public TokenResponse refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return authenticationService.refresh(request.refreshToken());
     }
 
     @PostMapping("/logout")
-    public void logout(@NotBlank(message = "Vui lòng cung cấp refresh token để đăng xuất") @RequestParam String refreshToken) {
+    public void logout(@Valid @RequestBody LogoutRequest request) {
         UUID requesterId = UserExtractor.extractUserIdFromContext();
-        authenticationService.logout(requesterId, refreshToken);
+        authenticationService.logout(requesterId, request.refreshToken());
     }
 
     @PostMapping("/reset-password")
-    public void resetPassword(@Valid @RequestBody ResetPasswordRequest resetPasswordModel) {
-        authenticationService.resetPassword(resetPasswordModel);
+    public void resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authenticationService.resetPassword(request);
     }
 
-    @PostMapping("/send-reset-password-otp")
+    @PostMapping("/request-reset-password")
     public void sendResetPasswordOtp(@RequestParam String phoneNumber) {
         Locale locale = LocaleContextHolder.getLocale();
         authenticationService.sendResetPasswordOtp(phoneNumber, locale);

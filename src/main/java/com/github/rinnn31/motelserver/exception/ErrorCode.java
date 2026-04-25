@@ -10,7 +10,8 @@ public enum ErrorCode {
     FILE_NOT_FOUND("Tệp tin không tồn tại", HttpStatus.NOT_FOUND),
     FILE_STORAGE_ERROR("Lỗi lưu trữ tệp", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_FILE_TYPE("Định dạng tệp không hợp lệ", HttpStatus.BAD_REQUEST),
-
+    INVALID_INPUT("Dữ liệu đầu vào không hợp lệ", HttpStatus.BAD_REQUEST),
+    
     /* Authentication */
     PHONE_NUMBER_USED("Số điện thoại đã được sử dụng", HttpStatus.BAD_REQUEST),
     USER_NOT_VERIFIED("Tài khoản chưa được xác thực", HttpStatus.FORBIDDEN),
