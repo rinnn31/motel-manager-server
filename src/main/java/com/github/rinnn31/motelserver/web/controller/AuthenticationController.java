@@ -8,7 +8,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.github.rinnn31.motelserver.dto.response.AuthenticationResponse;
@@ -19,6 +18,7 @@ import com.github.rinnn31.motelserver.dto.request.LogoutRequest;
 import com.github.rinnn31.motelserver.dto.request.RefreshTokenRequest;
 import com.github.rinnn31.motelserver.dto.request.RegisterRequest;
 import com.github.rinnn31.motelserver.dto.request.ResetPasswordRequest;
+import com.github.rinnn31.motelserver.dto.request.SendOtpRequest;
 import com.github.rinnn31.motelserver.security.UserExtractor;
 import com.github.rinnn31.motelserver.service.AuthenticationService;
 
@@ -62,9 +62,9 @@ public class AuthenticationController {
     }
 
     @PostMapping("/request-reset-password")
-    public void sendResetPasswordOtp(@RequestParam String phoneNumber) {
+    public void sendResetPasswordOtp(@Valid @RequestBody SendOtpRequest request) {
         Locale locale = LocaleContextHolder.getLocale();
-        authenticationService.sendResetPasswordOtp(phoneNumber, locale);
+        authenticationService.sendResetPasswordOtp(request.phoneNumber(), locale);
     }
 
     @PostMapping("/register-device")
