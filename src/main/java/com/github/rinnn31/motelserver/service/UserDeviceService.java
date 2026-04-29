@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.github.rinnn31.motelserver.entity.User;
 import com.github.rinnn31.motelserver.repository.UserDeviceRepository;
@@ -16,6 +17,7 @@ public class UserDeviceService {
         this.userDeviceRepository = userDeviceRepository;
     }
 
+    @Transactional
     public void registerDeviceToken(String sessionToken, String deviceToken, User user) {
         var userDeviceOpt = userDeviceRepository.findByUser_IdAndSessionToken(user.getId(), sessionToken);
         if (userDeviceOpt.isPresent()) {
@@ -30,11 +32,13 @@ public class UserDeviceService {
             userDeviceRepository.save(userDevice);
         }
     }
-
+    
+    @Transactional
     public void unregisterDeviceToken(String sessionToken) {
         userDeviceRepository.deleteBySessionToken(sessionToken);
     }
 
+    @Transactional
     public void unregisterDeviceTokenByDeviceToken(String deviceToken) {
         userDeviceRepository.deleteByDeviceToken(deviceToken);
     }

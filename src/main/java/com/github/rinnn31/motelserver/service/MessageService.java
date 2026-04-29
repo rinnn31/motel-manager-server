@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import com.github.rinnn31.motelserver.dto.response.MessageTargetInfo;
 import com.github.rinnn31.motelserver.dto.response.ObjectMetadata;
 import com.github.rinnn31.motelserver.entity.Message;
 import com.github.rinnn31.motelserver.entity.MessageRecipient;
+import com.github.rinnn31.motelserver.event.model.MessageSentEvent;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.repository.MessageRepository;
@@ -40,6 +42,8 @@ public class MessageService {
 
     private final MotelRepository motelRepository;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     public static final String SENT_BOX = "sent";
 
     public static final String RECEIVED_BOX = "received";
@@ -57,13 +61,20 @@ public class MessageService {
             "video/quicktime"
     };
 
-    public MessageService(MessageRepository messageRepository, ObjectStorageService storageService,
-            RoomRepository roomRepository, MemberRepository roomMemberRepository, MotelRepository motelRepository) {
+    public MessageService(
+        MessageRepository messageRepository, 
+        ObjectStorageService storageService,
+        RoomRepository roomRepository, 
+        MemberRepository roomMemberRepository, 
+        MotelRepository motelRepository,
+        ApplicationEventPublisher eventPublisher
+    ) {
         this.messageRepository = messageRepository;
         this.storageService = storageService;
         this.roomRepository = roomRepository;
         this.roomMemberRepository = roomMemberRepository;
         this.motelRepository = motelRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     public List<MediaPresignedUrlResponse> sendMessage(UUID senderId, String sendObjectType,
@@ -108,6 +119,14 @@ public class MessageService {
         }).toList());
         message.setCreatedAt(Instant.now());
         messageRepository.save(message);
+        
+        eventPublisher.publishEvent(new MessageSentEvent.FromMotel(
+            motel.getId().toString(),
+            motel.getDisplayName(),
+            rooms.stream().map(room -> room.getId().toString()).toList(),
+            message.getId().toString(),
+            message.getTitle()
+        ));
 
         return atatchmentUrls;
     }
@@ -149,6 +168,15 @@ public class MessageService {
         message.setRecipients(List.of(motelRecipient));
         message.setCreatedAt(Instant.now());
         messageRepository.save(message);
+
+        eventPublisher.publishEvent(new MessageSentEvent.FromRoom(
+            motel.getId().toString(),
+            motel.getDisplayName(),
+            room.getId().toString(),
+            room.getRoomNumber(),
+            message.getId().toString(),
+            message.getTitle()
+        ));
 
         return atatchmentUrls;
     }

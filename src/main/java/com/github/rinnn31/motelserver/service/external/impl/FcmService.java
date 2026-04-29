@@ -2,6 +2,7 @@ package com.github.rinnn31.motelserver.service.external.impl;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.MulticastMessage;
 import com.google.firebase.messaging.Notification;
+
 
 @Component
 @ConditionalOnProperty(name = "push-notification.provider", havingValue = "fcm")
@@ -23,7 +25,7 @@ public class FcmService implements PushNotificationService {
                 .setTitle(title)
                 .setBody(body)
                 .build())
-            .putAllData(extraData)
+            .putAllData(extraData != null ? extraData : Collections.emptyMap())
             .build();
 
         try {

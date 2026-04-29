@@ -6,11 +6,13 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.github.rinnn31.motelserver.dto.request.CreateInvoiceRequest;
 import com.github.rinnn31.motelserver.dto.response.InvoiceInfoResponse;
 import com.github.rinnn31.motelserver.entity.Invoice;
+import com.github.rinnn31.motelserver.event.model.InvoiceChangedEvent;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.repository.InvoiceRepository;
@@ -25,11 +27,19 @@ public class InvoiceService {
     private final RoomRepository roomRepository;
 
     private final MemberRepository roomMemberRepository;
-    
-    public InvoiceService(InvoiceRepository invoiceRepository, RoomRepository roomRepository, MemberRepository roomMemberRepository) {
+
+    private final ApplicationEventPublisher eventPublisher;
+
+    public InvoiceService(
+        InvoiceRepository invoiceRepository, 
+        RoomRepository roomRepository, 
+        MemberRepository roomMemberRepository,
+        ApplicationEventPublisher eventPublisher
+    ) {
         this.invoiceRepository = invoiceRepository;
         this.roomRepository = roomRepository;
         this.roomMemberRepository = roomMemberRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     public List<InvoiceInfoResponse> getInvoicesByRoom(UUID roomId, UUID requesterId, LocalDate fromDate, LocalDate toDate) {
@@ -97,8 +107,13 @@ public class InvoiceService {
                 return entity;
             }
         ).toList());
-
         invoiceRepository.save(invoice);
+
+        eventPublisher.publishEvent(new InvoiceChangedEvent.Created(
+            invoice.getId().toString(),
+            room.getMotel().getId().toString(),
+            room.getId().toString()
+        ));
     }
 
     public void payInvoice(UUID requesterId, UUID invoiceId) {
@@ -110,6 +125,12 @@ public class InvoiceService {
         invoice.setPaid(true);
         invoice.setPaidAt(Instant.now());
         invoiceRepository.save(invoice);
+
+        eventPublisher.publishEvent(new InvoiceChangedEvent.Paid(
+            invoice.getId().toString(),
+            invoice.getRoom().getMotel().getId().toString(),
+            invoice.getRoom().getId().toString()
+        ));
     }
 
     public void deleteInvoice(UUID requesterId, UUID invoiceId) {
@@ -119,5 +140,10 @@ public class InvoiceService {
         }
 
         invoiceRepository.delete(invoice);
+
+        eventPublisher.publishEvent(new InvoiceChangedEvent.Delete(
+            invoice.getRoom().getMotel().getId().toString(),
+            invoice.getRoom().getId().toString()
+        ));
     }
 }

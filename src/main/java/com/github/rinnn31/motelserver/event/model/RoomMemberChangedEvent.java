@@ -17,7 +17,8 @@ public class RoomMemberChangedEvent {
         String roomName,
         String roomId,
         String userId,
-        String userName
+        String userName,
+        boolean isOwnerRemoved
     ) {
     }
 }

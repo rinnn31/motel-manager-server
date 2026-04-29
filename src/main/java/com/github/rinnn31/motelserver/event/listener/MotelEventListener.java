@@ -7,6 +7,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.github.rinnn31.motelserver.entity.NotificationType;
+import com.github.rinnn31.motelserver.event.model.MotelFeeChangedEvent;
 import com.github.rinnn31.motelserver.event.model.MotelNameChangedEvent;
 import com.github.rinnn31.motelserver.repository.MotelRepository;
 import com.github.rinnn31.motelserver.repository.MemberRepository;
@@ -53,7 +54,32 @@ public class MotelEventListener extends AppEventListener {
             title, 
             body, 
             Map.of("motelId", event.motelId()),
-            NotificationType.MOTEL_INFO_CHANGED
+            NotificationType.MOTEL_NAME_CHANGED
+        );
+    }
+
+    @EventListener  
+    public void handleMotelFeeChangedEvent(MotelFeeChangedEvent event) {
+        String title = "Phí nhà trọ của bạn đã được thay đổi";
+        String body = "Chủ trọ của bạn đã thêm một loại phí mới cho nhà trọ của bạn. Hãy kiểm tra ngay để biết thêm chi tiết.";
+        var motelOpt = motelRepository.findById(UUID.fromString(event.motelId()));
+        if (motelOpt.isEmpty()) {
+            return;
+        }
+
+        var motel = motelOpt.get();
+        var roomMembers = roomMemberRepository.findByRoom_Motel_IdAndEndDateIsNull(motel.getId());
+        var memberIds = roomMembers.stream()
+            .map(rm -> rm.getUser().getId())
+            .distinct()
+            .toList();
+
+        sendNotification(
+            memberIds, 
+            title, 
+            body, 
+            Map.of("motelId", event.motelId()),
+            NotificationType.MOTEL_FEE_CHANGED
         );
     }
 

@@ -13,6 +13,8 @@ import com.github.rinnn31.motelserver.entity.Member;
 public interface MemberRepository extends JpaRepository<Member, UUID> {
     List<Member> findByRoom_IdAndEndDateIsNull(UUID roomId);
 
+    List<Member> findByRoom_IdInAndEndDateIsNull(List<UUID> roomIds);
+
     List<Member> findByRoom_Motel_IdAndEndDateIsNull(UUID motelId);
 
     int countByRoom_IdAndEndDateIsNull(UUID roomId);

@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.github.rinnn31.motelserver.dto.response.NotificationInfoResponse;
 import com.github.rinnn31.motelserver.entity.NotificationType;
@@ -52,17 +53,20 @@ public class NotificationService {
 
     public List<NotificationInfoResponse> getNotificationsForUser(UUID userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return notificationRepository.findByUser_Id(userId, pageable).stream()
-            .map(n -> new NotificationInfoResponse(
-                n.getId().toString(),
-                n.getTitle(),
-                n.getContent(),
-                n.getExtraData(),
-                n.getType().name()
-            ))
-            .toList();
+        return notificationRepository.findByUser_IdOrderByCreatedAtDesc(userId).stream()
+        .map(n -> new NotificationInfoResponse(
+            n.getId().toString(),
+            n.getTitle(),
+            n.getContent(),
+            n.getExtraData(),
+            n.getType().name(),
+            n.isRead(),
+            n.getCreatedAt().getEpochSecond()
+        ))
+        .toList();
     }
 
+    @Transactional
     public void deleteNotification(UUID notificationId, UUID requesterId) {
         var notificationOpt = notificationRepository.findById(notificationId);
         if (notificationOpt.isPresent()) {
@@ -75,10 +79,12 @@ public class NotificationService {
         }
     }
 
+    @Transactional
     public void deleteAllNotificationsForUser(UUID userId) {
         notificationRepository.deleteAllByUser_Id(userId);
     }
 
+    @Transactional
     public void markAllAsReadForUser(UUID requesterId) {
         notificationRepository.markAllAsReadForUser(requesterId);
     }  

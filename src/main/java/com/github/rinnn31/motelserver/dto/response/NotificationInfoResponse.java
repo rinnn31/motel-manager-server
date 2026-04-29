@@ -5,6 +5,8 @@ public record NotificationInfoResponse(
     String title,
     String content,
     String extraData,
-    String type
+    String type,
+    Boolean isRead,
+    Long createdAt
 ) {
 }

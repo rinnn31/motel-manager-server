@@ -8,10 +8,12 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.github.rinnn31.motelserver.entity.NotificationType;
+import com.github.rinnn31.motelserver.event.model.InvoiceChangedEvent;
 import com.github.rinnn31.motelserver.event.model.RoomMemberChangedEvent;
 import com.github.rinnn31.motelserver.event.model.RoomNameChangedEvent;
 import com.github.rinnn31.motelserver.event.model.RoomPriceChangedEvent;
 import com.github.rinnn31.motelserver.repository.MemberRepository;
+import com.github.rinnn31.motelserver.repository.MotelRepository;
 import com.github.rinnn31.motelserver.service.NotificationService;
 import com.github.rinnn31.motelserver.service.UserDeviceService;
 import com.github.rinnn31.motelserver.service.external.PushNotificationService;
@@ -20,13 +22,18 @@ import com.github.rinnn31.motelserver.service.external.PushNotificationService;
 public class RoomEventListener extends AppEventListener {
     private final MemberRepository roomMemberRepository;
 
+    private final MotelRepository motelRepository;
+
     public RoomEventListener(
             NotificationService notificationService, 
             PushNotificationService pushNotificationService,
             UserDeviceService userDeviceService,
-            MemberRepository roomMemberRepository) {
+            MemberRepository roomMemberRepository,
+            MotelRepository motelRepository
+        ) {
         super(notificationService, pushNotificationService, userDeviceService);
         this.roomMemberRepository = roomMemberRepository;
+        this.motelRepository = motelRepository;
     }
 
     @EventListener
@@ -96,8 +103,7 @@ public class RoomEventListener extends AppEventListener {
             memberBody,
             Map.of(
                 "roomId", event.roomId(),
-                "motelId", event.motelId(),
-                "newMemberId", event.userId()
+                "motelId", event.motelId()
             ),
             NotificationType.ROOM_MEMBER_CHANGED
         );
@@ -106,7 +112,15 @@ public class RoomEventListener extends AppEventListener {
     @EventListener
     public void handleRoomMemberRemovedEvent(RoomMemberChangedEvent.Removed event) {
         var ownerTitle = "Bạn đã rời khỏi phòng trọ hiện tại";
-        var ownerBody = String.format("Chủ nhà trọ %s đã xóa bạn khỏi phòng trọ %s", event.motelName(), event.roomName());
+        var ownerBody = event.isOwnerRemoved() 
+            ? String.format("Chủ nhà trọ %s đã xóa bạn khỏi phòng trọ %s", event.motelName(), event.roomName())
+            : String.format("Ban đã rời khỏi phòng trọ %s của nhà trọ %s", event.roomName(), event.motelName());
+        
+        var memberTitle = "Một thành viên đã rời khỏi phòng trọ của bạn";
+        var memberBody = event.isOwnerRemoved() 
+            ? String.format("Chủ nhà trọ của bạn đã xóa thành viên %s khỏi phòng trọ của bạn", event.userName())
+            : String.format("Thành viên %s đã rời khỏi phòng trọ của bạn", event.userName());
+
         sendNotification(
             List.of(UUID.fromString(event.userId())), 
             ownerTitle, 
@@ -115,12 +129,12 @@ public class RoomEventListener extends AppEventListener {
             NotificationType.ROOM_MEMBER_CHANGED
         );
 
-        var memberTitle = "Một thành viên đã rời khỏi phòng trọ của bạn";
-        var memberBody = String.format("Chủ nhà trọ của bạn đã xóa thành viên %s khỏi phòng trọ của bạn", event.userName());
         List<UUID> members = roomMemberRepository.findByRoom_IdAndEndDateIsNull(UUID.fromString(event.roomId())).stream()
             .map(rm -> rm.getUser().getId())
             .filter(id -> !id.equals(UUID.fromString(event.userId())))
             .toList();
+        UUID landlordId = motelRepository.findById(UUID.fromString(event.motelId())).get().getOwner().getId();
+        
         sendNotification(
             members,
             memberTitle,
@@ -130,6 +144,81 @@ public class RoomEventListener extends AppEventListener {
                 "motelId", event.motelId()
             ),
             NotificationType.ROOM_MEMBER_CHANGED
+        );
+
+        if (!event.isOwnerRemoved()) {
+            sendNotification(
+                List.of(landlordId),
+                memberTitle,
+                memberBody,
+                Map.of(
+                    "roomId", event.roomId(),
+                    "motelId", event.motelId()
+                ),
+                NotificationType.ROOM_MEMBER_CHANGED
+            );
+        }
+    }
+
+    @EventListener
+    public void handleInvoiceCreatedEvent(InvoiceChangedEvent.Created event) {
+        String title = "Một hóa đơn mới đã được tạo cho phòng trọ của bạn";
+        String body = "Chủ trọ của bạn đã tạo một hóa đơn mới cho phòng trọ của bạn. Hãy kiểm tra ngay để biết thêm chi tiết.";
+
+        List<UUID> members = roomMemberRepository.findByRoom_IdAndEndDateIsNull(UUID.fromString(event.roomId())).stream()
+            .map(rm -> rm.getUser().getId())
+            .toList();
+        sendNotification(
+            members,
+            title,
+            body,
+            Map.of(
+                "roomId", event.roomId(),
+                "motelId", event.motelId(),
+                "invoiceId", event.invoiceId()
+            ),
+            NotificationType.INVOICE_UPDATED
+        );
+    }
+
+    @EventListener
+    public void handleInvoicePaidEvent(InvoiceChangedEvent.Paid event) {
+        String title = "Một hóa đơn của phòng trọ bạn đã được xác nhận thanh toán";
+        String body = "Chủ trọ của bạn đã đánh dấu một hóa đơn là đã thanh toán cho phòng trọ của bạn. Hãy kiểm tra ngay để biết thêm chi tiết.";
+
+        List<UUID> members = roomMemberRepository.findByRoom_IdAndEndDateIsNull(UUID.fromString(event.roomId())).stream()
+            .map(rm -> rm.getUser().getId())
+            .toList();
+        sendNotification(
+            members,
+            title,
+            body,
+            Map.of(
+                "roomId", event.roomId(),
+                "motelId", event.motelId(),
+                "invoiceId", event.invoiceId()
+            ),
+            NotificationType.INVOICE_UPDATED
+        );
+    }
+
+    @EventListener
+    public void handleInvoiceDeletedEvent(InvoiceChangedEvent.Delete event) {
+        String title = "Một hóa đơn của phòng trọ bạn đã bị xóa";
+        String body = "Chủ trọ của bạn đã xóa một hóa đơn của phòng trọ của bạn.";
+
+        List<UUID> members = roomMemberRepository.findByRoom_IdAndEndDateIsNull(UUID.fromString(event.roomId())).stream()
+            .map(rm -> rm.getUser().getId())
+            .toList();
+        sendNotification(
+            members,
+            title,
+            body,
+            Map.of(
+                "roomId", event.roomId(),
+                "motelId", event.motelId()
+            ),
+            NotificationType.INVOICE_DELETED
         );
     }
 }

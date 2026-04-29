@@ -1,13 +1,26 @@
 package com.github.rinnn31.motelserver.event.model;
 
-public record MessageSentEvent(
-    String motelId,
-    String roomId,
-    String messageId,
-    String title,
-    String receivedObjectType,
-    // Extra fields for push notification, nullable
-    String motelName,
-    String roomNumber
-) {
+import java.util.List;
+
+public class MessageSentEvent {
+    public static record FromMotel(
+        String motelId,
+        String motelName,
+        List<String> roomIds,
+        String messageId,
+        String messageTitle
+    ) {
+
+    }
+
+    public static record FromRoom(
+        String motelId,
+        String motelName,
+        String roomId,
+        String roomNumber,
+        String messageId,
+        String messageTitle
+    ) {
+
+    }
 }

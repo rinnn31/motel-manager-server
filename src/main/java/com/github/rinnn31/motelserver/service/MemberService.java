@@ -166,7 +166,8 @@ public class MemberService {
             room.getRoomNumber(),
             room.getId().toString(),
             userId.toString(),
-            member.getUser().getFullName()
+            member.getUser().getFullName(),
+            !member.getUser().getId().equals(requesterId)
         ));
     }
 }
