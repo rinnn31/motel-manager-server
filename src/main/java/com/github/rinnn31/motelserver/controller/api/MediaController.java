@@ -1,4 +1,4 @@
-package com.github.rinnn31.motelserver.web.controller;
+package com.github.rinnn31.motelserver.controller.api;
 
 import java.io.IOException;
 
