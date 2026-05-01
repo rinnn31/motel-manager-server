@@ -19,7 +19,7 @@ import jakarta.persistence.Table;
 @Table(
     name = "motel_fee",
     indexes = {
-        @Index(name = "idx_motel_id_type", columnList = "motel_id, type")
+        @Index(name = "idx_motel_id_name", columnList = "motel_id,name")
     }
 )
 public class MotelFee {
