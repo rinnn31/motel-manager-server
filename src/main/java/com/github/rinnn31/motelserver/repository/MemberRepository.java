@@ -21,6 +21,8 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
 
     int countByRoom_Motel_IdAndEndDateIsNull(UUID motelId);
 
+    int countByRoom_Motel_Owner_IdAndEndDateIsNull(UUID ownerId);
+
     boolean existsByRoom_IdAndEndDateIsNull(UUID roomId);
 
     boolean existsByRoom_Motel_IdAndEndDateIsNull(UUID motelId);

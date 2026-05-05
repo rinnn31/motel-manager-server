@@ -8,6 +8,8 @@ import org.hibernate.annotations.UuidGenerator;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
@@ -36,7 +38,9 @@ public class Invoice {
     @OneToMany(mappedBy = "invoice", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     private List<InvoiceDetails> details;
 
-    private boolean paid = false;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status", nullable = false)
+    private PaymentStatus paymentStatus;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;  
@@ -68,12 +72,12 @@ public class Invoice {
         this.details = details;
     }
 
-    public boolean isPaid() {
-        return paid;
+    public PaymentStatus getPaymentStatus() {
+        return paymentStatus;
     }
 
-    public void setPaid(boolean paid) {
-        this.paid = paid;
+    public void setPaymentStatus(PaymentStatus paymentStatus) {
+        this.paymentStatus = paymentStatus;
     }
 
     public Instant getCreatedAt() {
