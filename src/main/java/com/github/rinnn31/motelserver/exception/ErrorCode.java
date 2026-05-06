@@ -41,6 +41,10 @@ public enum ErrorCode {
     INVOICE_NOT_FOUND("Hóa đơn không tồn tại", HttpStatus.NOT_FOUND),
     ROOM_NOT_SAME_MOTEL("Các phòng phải thuộc cùng một nhà trọ", HttpStatus.BAD_REQUEST), 
     MESSAGE_NOT_FOUND("Tin nhắn không tồn tại", HttpStatus.NOT_FOUND),
+    USER_ALREADY_IN_ROOM("Người dùng đã tham gia một nhà trọ rồi", HttpStatus.BAD_REQUEST),
+    ALREADY_INVITED("Bạn đã gửi lời mời vào nhà trọ này rồi, vui lòng chờ người dùng đó phản hồi", HttpStatus.BAD_REQUEST), 
+    ALREADY_PAID("Bạn đã xác nhận thanh toán hóa đơn này rồi", HttpStatus.BAD_REQUEST),
+    PAYMENT_CONFIRMED("Hoá đơn đã được xác nhận thanh toán rồi", HttpStatus.BAD_REQUEST),
     ;
     private final String message;
 

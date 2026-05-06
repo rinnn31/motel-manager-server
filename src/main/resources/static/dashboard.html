@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý người dùng | Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <style>
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+
+        body.modal-active {
+            overflow: hidden;
+        }
+
+        .group:hover .group-hover-flex {
+            display: flex;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 flex min-h-screen font-sans">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900 text-white fixed h-full p-6 z-40">
+        <h1 class="text-xl font-bold text-blue-400 mb-10">MOTEL ADMIN</h1>
+        <nav class="space-y-4">
+            <a href="/admin/dashboard" class="flex items-center gap-3 p-3 bg-blue-600 rounded-lg shadow-lg"><i
+                    class="fa-solid fa-people-roof"></i> Người dùng</a>
+            <a href="/admin/statistics" class="flex items-center gap-3 p-3 hover:bg-slate-800 rounded-lg transition"><i
+                    class="fa-solid fa-chart-simple"></i> Người dùng</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-64 flex-1 p-8">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800">Quản lý tài khoản</h2>
+                <p class="text-sm text-gray-500">
+                    Quản lý danh sách người thuê và chủ trọ trên hệ thống
+                </p>
+            </div>
+            <button onclick="toggleModal('userModal')"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow-sm flex items-center gap-2 transition">
+                <i class="fa-solid fa-plus"></i> Tạo người dùng
+            </button>
+        </div>
+
+        <!-- Search & Filter -->
+        <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex gap-4 border">
+            <div class="relative flex-1">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+                <input type="text" id="phoneFilter" placeholder="Tìm kiếm theo số điện thoại..."
+                    class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-200" />
+            </div>
+            <button onclick="fetchUsers(0)"
+                class="bg-slate-800 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition">
+                Lọc
+            </button>
+        </div>
+
+        <!-- Table -->
+        <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
+                            Avatar
+                        </th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            Họ tên / SĐT
+                        </th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            Vai trò
+                        </th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            Trạng thái
+                        </th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
+                            Thao tác
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody" class="divide-y divide-gray-100">
+                    <!-- Data Injected Here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-6 flex justify-between items-center bg-white p-4 rounded-xl border">
+            <span id="paginationInfo" class="text-sm text-gray-500 italic">Đang tải dữ liệu...</span>
+            <div id="paginationButtons" class="flex gap-2"></div>
+        </div>
+    </main>
+
+    <!-- MODAL: CREATE USER -->
+    <div id="userModal"
+        class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50">
+        <div class="modal-overlay absolute w-full h-full bg-slate-900 opacity-60"></div>
+        <div class="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded-xl shadow-2xl z-50 overflow-y-auto">
+            <div class="modal-content p-6">
+                <div class="flex justify-between items-center pb-4 border-b">
+                    <p class="text-xl font-bold text-gray-800">Thêm người dùng</p>
+                    <button onclick="toggleModal('userModal')"
+                        class="text-gray-400 hover:text-gray-600 transition text-2xl">
+                        &times;
+                    </button>
+                </div>
+
+                <form id="createUserForm" class="mt-6 space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Họ tên</label>
+                            <input type="text" name="fullName" required
+                                class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-200 text-sm" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">SĐT</label>
+                            <input type="text" name="phoneNumber" required
+                                class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-200 text-sm" />
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Giới tính</label>
+                            <select name="gender"
+                                class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-200 text-sm">
+                                <option value="1">Nam</option>
+                                <option value="0">Nữ</option>
+                                <option value="2">Khác</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Vai trò</label>
+                            <select name="role"
+                                class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-200 text-sm">
+                                <option value="1">Người thuê</option>
+                                <option value="0">Chủ trọ</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Mật khẩu</label>
+                        <input type="password" name="password" required
+                            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-gray-200 text-sm" />
+                    </div>
+
+                    <div class="flex items-center gap-2 py-2">
+                        <input type="checkbox" id="isVerified" name="isVerified"
+                            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+                        <label for="isVerified" class="text-sm text-gray-700">Xác thực tài khoản ngay</label>
+                    </div>
+
+                    <div class="pt-4 flex gap-3">
+                        <button type="button" onclick="toggleModal('userModal')"
+                            class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-bold text-sm">
+                            Hủy
+                        </button>
+                        <button type="submit" id="btnSubmit"
+                            class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-bold text-sm shadow-md">
+                            Lưu tài khoản
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: TENANT MOTEL INFO -->
+    <div id="tenantMotelModal"
+        class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50">
+        <div class="modal-overlay absolute w-full h-full bg-slate-900 opacity-60"></div>
+        <div class="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded-xl shadow-2xl z-50 overflow-y-auto">
+            <div class="modal-content p-6">
+                <div class="flex justify-between items-center pb-4 border-b">
+                    <h3 class="text-xl font-bold text-gray-800">Thông tin nơi ở</h3>
+                    <button onclick="toggleModal('tenantMotelModal')"
+                        class="text-gray-400 hover:text-gray-600 text-2xl">
+                        &times;
+                    </button>
+                </div>
+
+                <div id="tenantMotelContent" class="mt-6 space-y-5">
+                    <!-- Nội dung sẽ được nạp bằng JS -->
+                    <div class="animate-pulse flex flex-col gap-4">
+                        <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                </div>
+
+                <button onclick="toggleModal('tenantMotelModal')"
+                    class="mt-8 w-full py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-bold text-sm shadow-md">
+                    Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: INFO VIEW -->
+    <div id="infoModal"
+        class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50">
+        <div class="modal-overlay absolute w-full h-full bg-slate-900 opacity-60"></div>
+        <div class="modal-container bg-white w-11/12 md:max-w-sm mx-auto rounded-xl shadow-2xl z-50 overflow-y-auto">
+            <div class="modal-content p-8 text-center">
+                <div class="flex justify-end -mt-4 -mr-4">
+                    <button onclick="toggleModal('infoModal')"
+                        class="text-gray-400 hover:text-gray-600 text-2xl transition">
+                        &times;
+                    </button>
+                </div>
+
+                <img id="infoAvatar" src=""
+                    class="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg mx-auto -mt-4" />
+                <h3 id="infoFullName" class="text-xl font-bold text-gray-800 mt-4"></h3>
+                <div id="infoRoleBadge"
+                    class="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase mt-1"></div>
+
+                <div class="mt-8 space-y-4 text-left border-t pt-6">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-tighter">SĐT</span>
+                        <span id="infoPhone" class="text-sm font-semibold text-gray-700"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-tighter">Giới tính</span>
+                        <span id="infoGender" class="text-sm font-semibold text-gray-700"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-tighter">Trạng thái</span>
+                        <span id="infoStatus" class="text-sm font-semibold"></span>
+                    </div>
+                </div>
+
+                <button onclick="toggleModal('infoModal')"
+                    class="mt-8 w-full py-2.5 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition font-bold text-sm">
+                    Đóng cửa sổ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 0;
+        const pageSize = 50;
+
+        // Fetch Users Logic
+        async function fetchUsers(page = 0) {
+            currentPage = page;
+            const phone = document.getElementById("phoneFilter").value;
+            const url = `/api/admin/users?page=${page}&size=${pageSize}&filterNumber=${phone}`;
+
+            try {
+                const response = await fetch(url);
+                const result = await response.json();
+                const pageData = result.data || result; // Tùy thuộc vào cấu trúc trả về của API
+                renderTable(pageData.content);
+                renderPagination(pageData);
+            } catch (error) {
+                console.error("Lỗi fetch:", error);
+                document.getElementById("userTableBody").innerHTML =
+                    `<tr><td colspan="5" class="p-10 text-center text-red-500 font-semibold italic">Lỗi kết nối Server!</td></tr>`;
+            }
+        }
+
+        async function showTenantMotel(tenantId) {
+            const content = document.getElementById("tenantMotelContent");
+            toggleModal("tenantMotelModal");
+
+            // Hiển thị trạng thái loading
+            content.innerHTML = `<div class="flex justify-center py-10"><i class="fas fa-circle-notch animate-spin text-blue-500 text-3xl"></i></div>`;
+
+            try {
+                // 1. Gọi API lấy thông tin trọ tổng quát và thông tin thành viên (phòng, ngày thuê)
+                const [motelRes, memberRes] = await Promise.all([
+                    fetch(`/api/admin/motels/joined?tenantId=${tenantId}`),
+                    fetch(`/api/admin/members/${tenantId}`),
+                ]);
+
+                if (!motelRes.ok)
+                    throw new Error("Người dùng hiện chưa thuê phòng nào.");
+
+                const motelData = (await motelRes.json()).data; 
+                const memberData = (await memberRes.json()).data; 
+
+                content.innerHTML = `
+            <!-- Tên Nhà Trọ -->
+            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <p class="text-xs font-bold text-blue-400 uppercase mb-1">Đang cư trú tại</p>
+                <p class="text-lg font-bold text-blue-900">${motelData.name || "N/A"}</p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Tên Phòng -->
+                <div class="bg-gray-50 p-3 rounded-lg border">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">Phòng số</p>
+                    <p class="text-md font-bold text-gray-700">${memberData.roomNumber || "N/A"}</p>
+                </div>
+                <!-- Ngày bắt đầu -->
+                <div class="bg-gray-50 p-3 rounded-lg border">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">Ngày bắt đầu</p>
+                    <p class="text-md font-bold text-gray-700">
+                        ${memberData.joinDate || "N/A"}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Nút chuyển đến trang chi tiết nhà trọ -->
+            <div class="pt-2">
+                <a href="/admin/motel/${motelData.id}" 
+                   class="flex items-center justify-center gap-2 w-full py-3 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition font-bold text-sm shadow-md">
+                    <i class="fa-solid fa-circle-info"></i>
+                    Xem chi tiết nhà trọ
+                </a>
+            </div>
+
+            <div class="flex items-center gap-2 text-[10px] text-gray-400 italic justify-center">
+                <i class="fa-solid fa-shield-halved"></i>
+                Dữ liệu trích xuất từ hợp đồng hiện tại
+            </div>
+        `;
+            } catch (error) {
+                content.innerHTML = `
+            <div class="text-center py-6">
+                <div class="text-red-400 text-4xl mb-3"><i class="fa-solid fa-house-circle-exclamation"></i></div>
+                <p class="text-gray-600 font-medium">${error.message}</p>
+            </div>
+        `;
+            }
+        }
+
+        // Render Table Rows
+        function renderTable(users) {
+            const tbody = document.getElementById("userTableBody");
+            if (!users || users.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-gray-400 italic">Không tìm thấy người dùng nào</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = users
+                .map((user) => {
+                    const avatarSrc = user.avatarUrl
+                        ? "/api/media/" + user.avatarUrl
+                        : "https://ui-avatars.com/api/?background=random&name=" +
+                        encodeURIComponent(user.fullName);
+                    const userJsonBase64 = btoa(
+                        unescape(encodeURIComponent(JSON.stringify(user))),
+                    );
+
+                    return `
+                <tr class="hover:bg-blue-50/40 transition group">
+                    <td onclick="showUserInfo('${userJsonBase64}')" class="px-6 py-4 text-center cursor-pointer">
+                        <img src="${avatarSrc}" class="w-10 h-10 rounded-full object-cover border border-gray-200 mx-auto group-hover:scale-105 transition-transform">
+                    </td>
+                    <td onclick="showUserInfo('${userJsonBase64}')" class="px-6 py-4 cursor-pointer">
+                        <div class="font-bold text-gray-800">${user.fullName}</div>
+                        <div class="text-[11px] text-gray-400 font-mono tracking-tight">${user.phoneNumber}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${user.role === "LANDLORD" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}">
+                            ${user.role === "LANDLORD" ? "Chủ trọ" : "Người thuê"}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        ${user.isVerified
+                            ? '<span class="text-green-600 text-[11px] font-bold italic"><i class="fa-solid fa-check-circle"></i> Đã xác minh</span>'
+                            : '<span class="text-amber-500 text-[11px] font-bold italic"><i class="fa-solid fa-clock"></i> Đang chờ</span>'
+                        }
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex justify-end gap-3 transition-opacity">
+                            <button onclick="showUserInfo('${userJsonBase64}')" class="text-blue-500 hover:text-blue-700" title="Chi tiết"><i class="fa-solid fa-eye"></i></button>
+                            ${!user.isVerified ? `<button onclick="verifyUser('${user.id}')" class="text-green-500 hover:text-green-700 font-bold text-xs" title="Phê duyệt">Duyệt</button>` : ""}
+                            <button>
+                                ${user.role === "LANDLORD"
+                                    ? `<a href="/admin/motels?landlordId=${user.id}" class="text-purple-500 hover:text-purple-700 font-bold text-xs" title="Danh sách nhà trọ"><i class="fa-solid fa-hotel"></i></a>`
+                                    : `<button onclick="showTenantMotel('${user.id}')" class="text-purple-500 hover:text-purple-700 font-bold text-xs" title="Thông tin trọ đang thuê">
+                                        <i class="fa-solid fa-house-user"></i>
+                                    </button>`
+                            }
+                            </button>
+                            <button onclick="deleteUser('${user.id}')" class="text-red-400 hover:text-red-600" title="Xóa"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+                })
+                .join("");
+        }
+
+        // Create User & Complex Image Upload Process
+        document.getElementById("createUserForm").onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById("btnSubmit");
+            const originalBtnText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = "Đang xử lý...";
+
+            const formData = new FormData(e.target);
+
+            const userRequest = {
+                phoneNumber: formData.get("phoneNumber"),
+                fullName: formData.get("fullName"),
+                gender: parseInt(formData.get("gender")),
+                password: formData.get("password"),
+                role: formData.get("role"),
+                isVerified: formData.get("isVerified") === "on",
+            };
+
+            try {
+                // 1. Gửi request tạo user
+                const createRes = await fetch("/api/admin/users/create", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(userRequest),
+                });
+
+                if (!createRes.ok)
+                    throw new Error("Số điện thoại có thể đã tồn tại.");
+                const userId = (await createRes.text()).trim().replace(/^"|"$/g, ""); // Xử lý nếu server trả về UUID string có dấu ngoặc kép  
+
+                alert("Tạo người dùng và tải lên ảnh thành công!");
+                toggleModal("userModal");
+                fetchUsers(0);
+                e.target.reset();
+                document.getElementById("previewAvatar").classList.add("hidden");
+                document.getElementById("cameraIcon").classList.remove("hidden");
+            } catch (error) {
+                alert("Lỗi: " + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = originalBtnText;
+            }
+        };
+
+        // Info Viewer
+        function showUserInfo(base64Data) {
+            const user = JSON.parse(decodeURIComponent(escape(atob(base64Data))));
+
+            document.getElementById("infoAvatar").src = user.avatarUrl
+                ? "/api/media/" + user.avatarUrl
+                : "https://ui-avatars.com/api/?background=random&name=" +
+                encodeURIComponent(user.fullName);
+            document.getElementById("infoFullName").innerText = user.fullName;
+            document.getElementById("infoPhone").innerText = user.phoneNumber;
+
+            const genders = ["Nữ", "Nam", "Khác"];
+            document.getElementById("infoGender").innerText =
+                genders[user.gender] || "N/A";
+
+            const badge = document.getElementById("infoRoleBadge");
+            badge.innerText = user.role === "LANDLORD" ? "CHỦ TRỌ" : "NGƯỜI THUÊ";
+            badge.className = `inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase mt-1 ${user.role === "LANDLORD" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}`;
+
+            const status = document.getElementById("infoStatus");
+            status.innerHTML = user.isVerified
+                ? '<span class="text-green-600 font-bold italic"><i class="fa-solid fa-check-circle"></i> Đã xác minh</span>'
+                : '<span class="text-amber-500 font-bold italic"><i class="fa-solid fa-clock"></i> Chờ duyệt</span>';
+
+            toggleModal("infoModal");
+        }
+
+        // Actions: Verify / Delete
+        async function verifyUser(id) {
+            if (
+                !confirm(
+                    "Xác thực người dùng này? Tài khoản sẽ có quyền đăng tin nếu là Landlord.",
+                )
+            )
+                return;
+            try {
+                const res = await fetch(
+                    `/api/admin/users/${id}/verify?userId=${id}`,
+                    { method: "PATCH" },
+                );
+                if (res.ok) {
+                    fetchUsers(currentPage);
+                }
+            } catch (e) {
+                alert("Lỗi khi xác thực!");
+            }
+        }
+
+        async function deleteUser(id) {
+            if (
+                !confirm(
+                    "Hành động này không thể hoàn tác. Bạn chắc chắn muốn xóa tài khoản này?",
+                )
+            )
+                return;
+            try {
+                const res = await fetch(`/api/admin/users/${id}?userId=${id}`, {
+                    method: "DELETE",
+                });
+                if (res.ok) {
+                    fetchUsers(currentPage);
+                }
+            } catch (e) {
+                alert("Lỗi khi xóa!");
+            }
+        }
+
+        // Utils
+        function toggleModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.toggle("opacity-0");
+            modal.classList.toggle("pointer-events-none");
+            document.body.classList.toggle("modal-active");
+        }
+
+        function previewImage(input) {
+            const preview = document.getElementById("previewAvatar");
+            const icon = document.getElementById("cameraIcon");
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.src = e.target.result;
+                    preview.classList.remove("hidden");
+                    icon.classList.add("hidden");
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function renderPagination(pageData) {
+            const info = document.getElementById("paginationInfo");
+            info.innerText = `Trang ${pageData.number + 1} / ${pageData.totalPages} (${pageData.totalElements} tài khoản)`;
+
+            const buttons = document.getElementById("paginationButtons");
+            buttons.innerHTML = `
+                <button onclick="fetchUsers(${pageData.number - 1})" ${pageData.first ? "disabled" : ""} class="px-4 py-1.5 border rounded-lg hover:bg-gray-50 transition disabled:opacity-30 disabled:cursor-not-allowed text-xs font-bold">Trước</button>
+                <button onclick="fetchUsers(${pageData.number + 1})" ${pageData.last ? "disabled" : ""} class="px-4 py-1.5 border rounded-lg hover:bg-gray-50 transition disabled:opacity-30 disabled:cursor-not-allowed text-xs font-bold">Sau</button>
+            `;
+        }
+
+        // Init
+        document.addEventListener("DOMContentLoaded", () => fetchUsers(0));
+    </script>
+</body>
+
+</html>

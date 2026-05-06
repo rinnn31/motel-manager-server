@@ -10,13 +10,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.github.rinnn31.motelserver.dto.request.CreateMotelRequest;
 import com.github.rinnn31.motelserver.dto.request.UpdateMotelNameRequest;
 import com.github.rinnn31.motelserver.dto.response.MotelInfoResponse;
 import com.github.rinnn31.motelserver.dto.response.UserInfoResponse;
-import com.github.rinnn31.motelserver.security.UserExtractor;
+import com.github.rinnn31.motelserver.security.Requester;
 import com.github.rinnn31.motelserver.service.MotelService;
 
 import jakarta.validation.Valid;
@@ -32,43 +33,43 @@ public class MotelController {
 
     @GetMapping
     public List<MotelInfoResponse> getMotels() {
-        UUID userId = UserExtractor.extractUserIdFromContext();
-        return motelService.getMotelsOfUser(userId);
+        Requester requester = Requester.fromContext();
+        return motelService.getMotelsOfLandlord(requester.userId());
     }
 
     @GetMapping("/joined")
-    public MotelInfoResponse getJoinedMotel() {
-        UUID userId = UserExtractor.extractUserIdFromContext();
-        return motelService.getJoinedMotelInfo(userId);
+    public MotelInfoResponse getJoinedMotel(@RequestParam(required = false) UUID tenantId) {
+        Requester requester = Requester.fromContext();
+        return motelService.getJoinedMotelInfo(requester.userId());
     }
 
     @GetMapping("/{motelId}")
     public MotelInfoResponse getMotel(@PathVariable UUID motelId) {
-        UUID userId = UserExtractor.extractUserIdFromContext();
-        return motelService.getMotelInfo(motelId, userId);
+        Requester requester = Requester.fromContext();
+        return motelService.getMotelInfo(motelId, requester);
     }
 
     @PostMapping
     public void addMotel(@Valid @RequestBody CreateMotelRequest request) {
-        UUID userId = UserExtractor.extractUserIdFromContext();
-        motelService.addMotel(userId, request.displayName());
+        Requester requester = Requester.fromContext();
+        motelService.addMotel(requester, request.displayName());
     }
 
     @DeleteMapping("/{motelId}")
     public void deleteMotel(@PathVariable UUID motelId) {
-        UUID userId = UserExtractor.extractUserIdFromContext();
-        motelService.deleteMotel(userId, motelId);
+        Requester requester = Requester.fromContext();
+        motelService.deleteMotel(motelId, requester);
     }
 
     @PatchMapping("/{motelId}/name")
     public void updateMotelName(@PathVariable UUID motelId, @Valid @RequestBody UpdateMotelNameRequest request) {
-        UUID userId = UserExtractor.extractUserIdFromContext();
-        motelService.updateMotelName(motelId, userId, request.newName());
+        Requester requester = Requester.fromContext();
+        motelService.updateMotelName(motelId, requester, request.newName());
     }
 
     @GetMapping("/{motelId}/owner")
     public UserInfoResponse getMotelOwnerInfo(@PathVariable UUID motelId) {
-        UUID userId = UserExtractor.extractUserIdFromContext();
-        return motelService.getMotelOwnerInfo(motelId, userId); 
+        Requester requester = Requester.fromContext();
+        return motelService.getMotelOwnerInfo(motelId, requester); 
     }
 }

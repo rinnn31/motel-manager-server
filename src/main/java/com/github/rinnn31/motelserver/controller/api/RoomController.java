@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.github.rinnn31.motelserver.dto.request.AddRoomRequest;
 import com.github.rinnn31.motelserver.dto.request.UpdateRoomRequest;
 import com.github.rinnn31.motelserver.dto.response.RoomInfoResponse;
-import com.github.rinnn31.motelserver.security.UserExtractor;
+import com.github.rinnn31.motelserver.security.Requester;
 import com.github.rinnn31.motelserver.service.RoomService;
 
 import jakarta.validation.Valid;
@@ -32,37 +32,41 @@ public class RoomController {
 
     @GetMapping
     public List<RoomInfoResponse> getRooms(@RequestParam UUID motelId) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        return roomService.getRooms(requesterId, motelId);
+        Requester requester = Requester.fromContext();
+        return roomService.getRooms(requester, motelId);
     }
 
     @GetMapping("/{roomId}")
     public RoomInfoResponse getRoom(@PathVariable UUID roomId) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        return roomService.getRoomInfo(requesterId, roomId);
+        Requester requester = Requester.fromContext();
+        return roomService.getRoomInfo(roomId, requester);
     }
 
     @GetMapping("/joined")
-    public RoomInfoResponse getJoinedRoom() {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        return roomService.getJoinedRoomInfo(requesterId);
+    public RoomInfoResponse getJoinedRoom(@RequestParam(required = false) UUID tenantId) {
+        Requester requester = Requester.fromContext();
+        if (requester.isAdmin()) {
+            return roomService.getJoinedRoomInfo(tenantId);
+        } else {
+            return roomService.getJoinedRoomInfo(requester.userId());
+        }
     }
 
     @PostMapping
     public void addRoom(@Valid @RequestBody AddRoomRequest request) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        roomService.addRoom(requesterId, request);
+        Requester requester = Requester.fromContext();
+        roomService.addRoom(requester, request);
     }
 
     @PatchMapping("/{roomId}")
     public void updateRoom(@PathVariable UUID roomId, @Valid @RequestBody UpdateRoomRequest request) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        roomService.updateRoom(requesterId, roomId, request);
+        Requester requester = Requester.fromContext();
+        roomService.updateRoom(requester, roomId, request);
     }
 
     @DeleteMapping("/{roomId}")
     public void deleteRoom(@PathVariable UUID roomId) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        roomService.deleteRoom(requesterId, roomId);
+        Requester requester = Requester.fromContext();
+        roomService.deleteRoom(requester, roomId);
     }
 }

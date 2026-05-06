@@ -28,6 +28,7 @@ import com.github.rinnn31.motelserver.repository.MessageRepository;
 import com.github.rinnn31.motelserver.repository.MotelRepository;
 import com.github.rinnn31.motelserver.repository.MemberRepository;
 import com.github.rinnn31.motelserver.repository.RoomRepository;
+import com.github.rinnn31.motelserver.security.Requester;
 import com.github.rinnn31.motelserver.service.external.ObjectStorageService;
 
 @Service
@@ -77,20 +78,20 @@ public class MessageService {
         this.eventPublisher = eventPublisher;
     }
 
-    public List<MediaPresignedUrlResponse> sendMessage(UUID senderId, String sendObjectType,
+    public List<MediaPresignedUrlResponse> sendMessage(Requester requester, String sendObjectType,
             SendMessageRequest request) {
         switch (sendObjectType) {
             case ROOM_OBJECT_TYPE -> {
-                return sendFromRoomToMotel(senderId, request);
+                return sendFromRoomToMotel(requester, request);
             }
             case MOTEL_OBJECT_TYPE -> {
-                return sendFromMotelToRoom(senderId, request);
+                return sendFromMotelToRoom(requester, request);
             }
             default -> throw new AppError(ErrorCode.INVALID_OPERATION);
         }
     }
 
-    private List<MediaPresignedUrlResponse> sendFromMotelToRoom(UUID senderId, SendMessageRequest request) {
+    private List<MediaPresignedUrlResponse> sendFromMotelToRoom(Requester requester, SendMessageRequest request) {
         if (roomRepository
                 .countDistinctMotelByIdIn(request.targetRoomIds().stream().map(UUID::fromString).toList()) != 1) {
             throw new AppError(ErrorCode.ROOM_NOT_SAME_MOTEL);
@@ -100,7 +101,7 @@ public class MessageService {
             throw new AppError(ErrorCode.ROOM_NOT_FOUND);
         }
         var motel = rooms.get(0).getMotel();
-        if (!motel.getOwner().getId().equals(senderId)) {
+        if (!motel.getOwner().getId().equals(requester.userId())) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
 
@@ -148,8 +149,8 @@ public class MessageService {
         return attachmentUrls;
     }
 
-    private List<MediaPresignedUrlResponse> sendFromRoomToMotel(UUID senderId, SendMessageRequest request) {
-        var roomMember = roomMemberRepository.findByUser_IdAndEndDateIsNull(senderId)
+    private List<MediaPresignedUrlResponse> sendFromRoomToMotel(Requester requester, SendMessageRequest request) {
+        var roomMember = roomMemberRepository.findByUser_IdAndEndDateIsNull(requester.userId())
                 .orElseThrow(() -> new AppError(ErrorCode.INVALID_OPERATION));
         var room = roomMember.getRoom();
         var motel = room.getMotel();
@@ -181,25 +182,25 @@ public class MessageService {
         return atatchmentUrls;
     }
 
-    public MessageInfoResponse getMessageDetails(UUID requesterId, UUID messageId) {
+    public MessageInfoResponse getMessageDetails(Requester requester, UUID messageId) {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new AppError(ErrorCode.MESSAGE_NOT_FOUND));
 
         if (message.getMotelSender() != null) {
-            boolean isSender = message.getMotelSender().getOwner().getId().equals(requesterId);
+            boolean isSender = message.getMotelSender().getOwner().getId().equals(requester.userId());
             boolean isRecipient = message.getRecipients().stream().anyMatch(recipient -> recipient
                     .getRoomRecipient() != null
                     && recipient.getRoomRecipient().getMembers().stream().anyMatch(
-                            member -> member.getUser().getId().equals(requesterId) && member.getEndDate() == null));
+                            member -> member.getUser().getId().equals(requester.userId()) && member.getEndDate() == null));
             if (!isSender && !isRecipient) {
                 throw new AppError(ErrorCode.INVALID_OPERATION);
             }
         } else if (message.getRoomSender() != null) {
             boolean isSender = message.getRoomSender().getMembers().stream()
-                    .anyMatch(member -> member.getUser().getId().equals(requesterId) && member.getEndDate() == null);
+                    .anyMatch(member -> member.getUser().getId().equals(requester.userId()) && member.getEndDate() == null);
             boolean isRecipient = message.getRecipients().stream()
                     .anyMatch(recipient -> recipient.getMotelRecipient() != null
-                            && recipient.getMotelRecipient().getOwner().getId().equals(requesterId));
+                            && recipient.getMotelRecipient().getOwner().getId().equals(requester.userId()));
             if (!isSender && !isRecipient) {
                 throw new AppError(ErrorCode.INVALID_OPERATION);
             }
@@ -245,22 +246,22 @@ public class MessageService {
                 }).toList());
     }
 
-    public List<MessageInfoResponse> getMessages(UUID requesterId, UUID objectId, String objectType, String box,
+    public List<MessageInfoResponse> getMessages(Requester requester, UUID objectId, String objectType, String box,
             LocalDate from, LocalDate to, int page, int size) {
         switch (objectType) {
             case "room" -> {
-                return getMessagesForRoom(requesterId, objectId, box, from, to, page, size);
+                return getMessagesForRoom(requester, objectId, box, from, to, page, size);
             }
             case "motel" -> {
-                return getMessagesForMotel(requesterId, objectId, box, from, to, page, size);
+                return getMessagesForMotel(requester, objectId, box, from, to, page, size);
             }
             default -> throw new AppError(ErrorCode.INVALID_OPERATION);
         }
     }
 
-    public List<MessageInfoResponse> getMessagesForRoom(UUID requesterId, UUID roomId, String box, LocalDate from, LocalDate to, int page,
+    public List<MessageInfoResponse> getMessagesForRoom(Requester requester, UUID roomId, String box, LocalDate from, LocalDate to, int page,
             int size) {
-        var member = roomMemberRepository.findByUser_IdAndRoom_IdAndEndDateIsNull(requesterId, roomId)
+        var member = roomMemberRepository.findByUser_IdAndRoom_IdAndEndDateIsNull(requester.userId(), roomId)
                 .orElseThrow(() -> new AppError(ErrorCode.INVALID_OPERATION));
         // Room member can only see messages from the time they joined
         Instant fromTime = from != null ? from.atStartOfDay().toInstant(ZoneOffset.UTC) : Instant.EPOCH;
@@ -309,9 +310,9 @@ public class MessageService {
                 .toList();
     }
 
-    public List<MessageInfoResponse> getMessagesForMotel(UUID requesterId, UUID motelId, String box, LocalDate from, LocalDate to,
+    public List<MessageInfoResponse> getMessagesForMotel(Requester requester, UUID motelId, String box, LocalDate from, LocalDate to,
             int page, int size) {
-        if (!motelRepository.existsByIdAndOwner_Id(motelId, requesterId)) {
+        if (!motelRepository.existsByIdAndOwner_Id(motelId, requester.userId())) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
 

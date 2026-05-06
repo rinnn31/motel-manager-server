@@ -8,7 +8,14 @@ public class InvoiceChangedEvent {
     ) {
     }
 
-    public static record Paid(
+    public static record PayerPaid(
+        String invoiceId,
+        String motelId,
+        String roomId
+    ) {
+    }
+
+    public static record PayeeConfirmed(
         String invoiceId,
         String motelId,
         String roomId

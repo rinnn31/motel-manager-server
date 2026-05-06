@@ -8,7 +8,7 @@ import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.github.rinnn31.motelserver.dto.response.ApiResponse;
 import com.github.rinnn31.motelserver.exception.AppError;
@@ -60,8 +60,8 @@ public class GlobalErrorHandler {
         return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", errorMessage));
     }
 
-    @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<ApiResponse<?>> handleNoHandlerFoundException(NoHandlerFoundException ex) {
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleNoHandlerFoundException(NoResourceFoundException ex) {
         return ResponseEntity.status(404).body(ApiResponse.error("NOT_FOUND", "Đường dẫn không tồn tại"));
     }
 

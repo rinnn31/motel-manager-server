@@ -1,7 +1,6 @@
 package com.github.rinnn31.motelserver.controller.api;
 
 import java.util.Locale;
-import java.util.UUID;
 
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.validation.annotation.Validated;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.github.rinnn31.motelserver.dto.response.AuthenticationResponse;
 import com.github.rinnn31.motelserver.dto.response.TokenResponse;
+import com.github.rinnn31.motelserver.security.Requester;
 import com.github.rinnn31.motelserver.dto.request.DeviceRegisterRequest;
 import com.github.rinnn31.motelserver.dto.request.LoginRequest;
 import com.github.rinnn31.motelserver.dto.request.LogoutRequest;
@@ -19,7 +19,6 @@ import com.github.rinnn31.motelserver.dto.request.RefreshTokenRequest;
 import com.github.rinnn31.motelserver.dto.request.RegisterRequest;
 import com.github.rinnn31.motelserver.dto.request.ResetPasswordRequest;
 import com.github.rinnn31.motelserver.dto.request.SendOtpRequest;
-import com.github.rinnn31.motelserver.security.UserExtractor;
 import com.github.rinnn31.motelserver.service.AuthenticationService;
 
 import jakarta.validation.Valid;
@@ -52,8 +51,8 @@ public class AuthenticationController {
 
     @PostMapping("/logout")
     public void logout(@Valid @RequestBody LogoutRequest request) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        authenticationService.logout(requesterId, request.refreshToken());
+        Requester requester = Requester.fromContext();
+        authenticationService.logout(requester.userId(), request.refreshToken());
     }
 
     @PostMapping("/reset-password")
@@ -69,8 +68,8 @@ public class AuthenticationController {
 
     @PostMapping("/register-device")
     public void registerDevice(@Valid @RequestBody DeviceRegisterRequest request) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        authenticationService.registerDevice(requesterId, request);
+        Requester requester = Requester.fromContext();
+        authenticationService.registerDevice(requester.userId(), request);
     }
 
 }

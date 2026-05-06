@@ -182,7 +182,7 @@ public class RoomEventListener extends AppEventListener {
     }
 
     @EventListener
-    public void handleInvoicePaidEvent(InvoiceChangedEvent.Paid event) {
+    public void handleInvoicePaidEvent(InvoiceChangedEvent.PayeeConfirmed event) {
         String title = "Một hóa đơn của phòng trọ bạn đã được xác nhận thanh toán";
         String body = "Chủ trọ của bạn đã đánh dấu một hóa đơn là đã thanh toán cho phòng trọ của bạn. Hãy kiểm tra ngay để biết thêm chi tiết.";
 

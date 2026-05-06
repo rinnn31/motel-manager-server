@@ -16,6 +16,7 @@ import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.repository.MotelRepository;
 import com.github.rinnn31.motelserver.repository.MemberRepository;
 import com.github.rinnn31.motelserver.repository.UserRepository;
+import com.github.rinnn31.motelserver.security.Requester;
 
 @Service
 public class MotelService {
@@ -23,40 +24,51 @@ public class MotelService {
 
     private final UserRepository userRepository;
 
-    private final MemberRepository roomMemberRepository;
+    private final MemberRepository memberRepository;
 
     private final ApplicationEventPublisher eventPublisher;
 
     public MotelService(
         MotelRepository motelRepository, 
         UserRepository userRepository, 
-        MemberRepository roomMemberRepository,
+        MemberRepository memberRepository,
         ApplicationEventPublisher eventPublisher
     ) {
         this.motelRepository = motelRepository;
         this.userRepository = userRepository;
-        this.roomMemberRepository = roomMemberRepository;
+        this.memberRepository = memberRepository;
         this.eventPublisher = eventPublisher;
     }
 
-    public MotelInfoResponse getMotelInfo(UUID motelId, UUID requesterId) {
+    private Motel getMotelIfAccessible(UUID motelId, Requester requester) {
         var motel = motelRepository.findById(motelId)
                 .orElseThrow(() -> new AppError(ErrorCode.MOTEL_NOT_FOUND));
-        if (!motel.getOwner().getId().equals(requesterId) && !roomMemberRepository.existsByRoom_Motel_IdAndUser_IdAndEndDateIsNull(motelId, requesterId)) {
+        
+        if (
+            requester.isAdmin() ||
+            motel.getOwner().getId().equals(requester.userId()) ||
+            memberRepository.existsByRoom_Motel_IdAndUser_IdAndEndDateIsNull(motelId, requester.userId())
+        ) {
+            return motel;
+        } else {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
+    }
+
+    public MotelInfoResponse getMotelInfo(UUID motelId, Requester requester) {
+        var motel = getMotelIfAccessible(motelId, requester);
         
-        int memberCount = roomMemberRepository.countByRoom_Motel_IdAndEndDateIsNull(motelId);
+        int memberCount = memberRepository.countByRoom_Motel_IdAndEndDateIsNull(motelId);
         return new MotelInfoResponse(motel.getId().toString(), motel.getDisplayName(), memberCount);
     }
 
     public MotelInfoResponse getJoinedMotelInfo(UUID userId) {
-        var roomMember = roomMemberRepository.findByUser_IdAndEndDateIsNull(userId).orElse(null);
+        var roomMember = memberRepository.findByUser_IdAndEndDateIsNull(userId).orElse(null);
         if (roomMember == null) {
             return null;
         }
 
-        int memberCount = roomMemberRepository.countByRoom_Motel_IdAndEndDateIsNull(roomMember.getRoom().getMotel().getId());
+        int memberCount = memberRepository.countByRoom_Motel_IdAndEndDateIsNull(roomMember.getRoom().getMotel().getId());
         return new MotelInfoResponse(
             roomMember.getRoom().getMotel().getId().toString(), 
             roomMember.getRoom().getMotel().getDisplayName(), 
@@ -64,13 +76,16 @@ public class MotelService {
         );
     }
 
-    public void addMotel(UUID ownerId, String displayName) {
-        var user = userRepository.findById(ownerId)
+    public void addMotel(Requester requester, String displayName) {
+        if (requester.isAdmin()) {
+            throw new AppError(ErrorCode.INVALID_OPERATION);
+        }
+        var user = userRepository.findById(requester.userId())
                 .orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
         if (!UserRole.LANDLORD.equals(user.getRole())) {
             throw new AppError(ErrorCode.USER_NOT_LANDLORD);
         }   
-        if (motelRepository.existsByOwner_IdAndDisplayName(ownerId, displayName)) {
+        if (motelRepository.existsByOwner_IdAndDisplayName(requester.userId(), displayName)) {
             throw new AppError(ErrorCode.MOTEL_NAME_EXISTS);
         }
 
@@ -80,27 +95,27 @@ public class MotelService {
         motelRepository.save(motel);
     }
 
-    public void deleteMotel(UUID motelId, UUID ownerId) {
+    public void deleteMotel(UUID motelId, Requester requester) {
         var motel = motelRepository.findById(motelId)
                 .orElseThrow(() -> new AppError(ErrorCode.MOTEL_NOT_FOUND));
-        if (!motel.getOwner().getId().equals(ownerId)) {
+        if (!motel.getOwner().getId().equals(requester.userId())) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
 
-        if (roomMemberRepository.existsByRoom_Motel_IdAndEndDateIsNull(motelId)) {
+        if (memberRepository.existsByRoom_Motel_IdAndEndDateIsNull(motelId)) {
             throw new AppError(ErrorCode.MOTEL_HAS_MEMBERS);
         }
 
         motelRepository.delete(motel);
     }
 
-    public void updateMotelName(UUID motelId, UUID ownerId, String newDisplayName) {
+    public void updateMotelName(UUID motelId, Requester requester, String newDisplayName) {
         var motel = motelRepository.findById(motelId)
                 .orElseThrow(() -> new AppError(ErrorCode.MOTEL_NOT_FOUND));
-        if (!motel.getOwner().getId().equals(ownerId)) {
+        if (!motel.getOwner().getId().equals(requester.userId())) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
-        if (motelRepository.existsByOwner_IdAndDisplayName(ownerId, newDisplayName)) {
+        if (motelRepository.existsByOwner_IdAndDisplayName(requester.userId(), newDisplayName)) {
             throw new AppError(ErrorCode.MOTEL_NAME_EXISTS);
         }
 
@@ -110,20 +125,16 @@ public class MotelService {
         eventPublisher.publishEvent(new MotelNameChangedEvent(motel.getId().toString(), newDisplayName));
     }
 
-    public List<MotelInfoResponse> getMotelsOfUser(UUID userId) {
+    public List<MotelInfoResponse> getMotelsOfLandlord(UUID userId) {
         var motels = motelRepository.findByOwner_Id(userId);
         return motels.stream().map(motel -> {
-            int memberCount = roomMemberRepository.countByRoom_Motel_IdAndEndDateIsNull(motel.getId());
+            int memberCount = memberRepository.countByRoom_Motel_IdAndEndDateIsNull(motel.getId());
             return new MotelInfoResponse(motel.getId().toString(), motel.getDisplayName(), memberCount);
         }).toList();
     }
 
-    public UserInfoResponse getMotelOwnerInfo(UUID motelId, UUID requesterId) {
-        var motel = motelRepository.findById(motelId)
-                .orElseThrow(() -> new AppError(ErrorCode.MOTEL_NOT_FOUND));
-        if (!motel.getOwner().getId().equals(requesterId) && !roomMemberRepository.existsByRoom_Motel_IdAndUser_IdAndEndDateIsNull(motelId, requesterId)) {
-            throw new AppError(ErrorCode.INVALID_OPERATION);
-        }
+    public UserInfoResponse getMotelOwnerInfo(UUID motelId, Requester requester) {
+        var motel = getMotelIfAccessible(motelId, requester);
 
         var landlord = motel.getOwner();
         return new UserInfoResponse(
@@ -135,5 +146,13 @@ public class MotelService {
             null,
             landlord.getAvatarUrl()
         );
+    }
+
+    public List<MotelInfoResponse> getAllMotels() {
+        var motels = motelRepository.findAll();
+        return motels.stream().map(motel -> {
+            int memberCount = memberRepository.countByRoom_Motel_IdAndEndDateIsNull(motel.getId());
+            return new MotelInfoResponse(motel.getId().toString(), motel.getDisplayName(), memberCount);
+        }).toList();
     }
 }

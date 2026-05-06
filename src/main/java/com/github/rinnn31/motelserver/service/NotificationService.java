@@ -16,6 +16,7 @@ import com.github.rinnn31.motelserver.entity.User;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.repository.NotificationRepository;
+import com.github.rinnn31.motelserver.security.Requester;
 
 @Service
 public class NotificationService {
@@ -38,11 +39,11 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
-    public void markAsRead(UUID notificationId, UUID requesterId) {
+    public void markAsRead(UUID notificationId, Requester requester) {
         var notificationOpt = notificationRepository.findById(notificationId);
         if (notificationOpt.isPresent()) {
             var notification = notificationOpt.get();
-            if (!notification.getUser().getId().equals(requesterId)) {
+            if (!notification.getUser().getId().equals(requester.userId())) {
                 throw new AppError(ErrorCode.INVALID_OPERATION);
             }
 
@@ -51,9 +52,9 @@ public class NotificationService {
         }
     }
 
-    public List<NotificationInfoResponse> getNotificationsForUser(UUID userId, int page, int size) {
+    public List<NotificationInfoResponse> getNotificationsForUser(Requester requester, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return notificationRepository.findByUser_IdOrderByCreatedAtDesc(userId).stream()
+        return notificationRepository.findByUser_Id(requester.userId(), pageable).stream()
         .map(n -> new NotificationInfoResponse(
             n.getId().toString(),
             n.getTitle(),
@@ -67,11 +68,11 @@ public class NotificationService {
     }
 
     @Transactional
-    public void deleteNotification(UUID notificationId, UUID requesterId) {
+    public void deleteNotification(UUID notificationId, Requester requester) {
         var notificationOpt = notificationRepository.findById(notificationId);
         if (notificationOpt.isPresent()) {
             var notification = notificationOpt.get();
-            if (!notification.getUser().getId().equals(requesterId)) {
+            if (!notification.getUser().getId().equals(requester.userId())) {
                 throw new AppError(ErrorCode.INVALID_OPERATION);
             }
 
@@ -80,13 +81,13 @@ public class NotificationService {
     }
 
     @Transactional
-    public void deleteAllNotificationsForUser(UUID userId) {
-        notificationRepository.deleteAllByUser_Id(userId);
+    public void deleteAllNotifications(Requester requester) {
+        notificationRepository.deleteAllByUser_Id(requester.userId());
     }
 
     @Transactional
-    public void markAllAsReadForUser(UUID requesterId) {
-        notificationRepository.markAllAsReadForUser(requesterId);
+    public void markAllAsRead(Requester requester) {
+        notificationRepository.markAllAsReadForUser(requester.userId());
     }  
 
 }

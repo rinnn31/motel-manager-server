@@ -103,7 +103,6 @@
             <artifactId>libphonenumber</artifactId>
             <version>8.13.35</version> <!-- Use latest version -->
         </dependency>
-
     </dependencies>
     <build>
         <plugins>

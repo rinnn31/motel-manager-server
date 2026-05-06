@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.github.rinnn31.motelserver.dto.request.CreateInvoiceRequest;
 import com.github.rinnn31.motelserver.dto.response.InvoiceInfoResponse;
-import com.github.rinnn31.motelserver.security.UserExtractor;
+import com.github.rinnn31.motelserver.security.Requester;
 import com.github.rinnn31.motelserver.service.InvoiceService;
 
 import jakarta.validation.Valid;
@@ -36,25 +36,25 @@ public class InvoiceController {
         @RequestParam UUID roomId, 
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate, 
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        return invoiceService.getInvoicesByRoom(roomId, requesterId, fromDate, toDate);
+        Requester requester = Requester.fromContext();
+        return invoiceService.getInvoicesByRoom(roomId, requester, fromDate, toDate);
     }
 
     @PostMapping
     public void createInvoice(@Valid @RequestBody CreateInvoiceRequest request) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        invoiceService.createInvoice(requesterId, request);
+        Requester requester = Requester.fromContext();
+        invoiceService.createInvoice(requester, request);
     }
 
     @PatchMapping("/{invoiceId}/pay")
     public void payInvoice(@PathVariable UUID invoiceId) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        invoiceService.payInvoice(requesterId, invoiceId);
+        Requester requester = Requester.fromContext();
+        invoiceService.payInvoice(requester, invoiceId);
     }
 
     @DeleteMapping("/{invoiceId}")
     public void deleteInvoice(@PathVariable UUID invoiceId) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        invoiceService.deleteInvoice(requesterId, invoiceId);
+        Requester requester = Requester.fromContext();
+        invoiceService.deleteInvoice(requester, invoiceId);
     }
 }

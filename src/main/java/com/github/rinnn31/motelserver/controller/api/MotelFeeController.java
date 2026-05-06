@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.github.rinnn31.motelserver.dto.request.AddFeeRequest;
 import com.github.rinnn31.motelserver.dto.request.UpdateFeeRequest;
 import com.github.rinnn31.motelserver.dto.response.FeeInfoResponse;
-import com.github.rinnn31.motelserver.security.UserExtractor;
+import com.github.rinnn31.motelserver.security.Requester;
 import com.github.rinnn31.motelserver.service.MotelFeeService;
 
 import jakarta.validation.Valid;
@@ -32,25 +32,25 @@ public class MotelFeeController {
 
     @GetMapping
     public List<FeeInfoResponse> getFees(@RequestParam UUID motelId) {
-        UUID userId = UserExtractor.extractUserIdFromContext();
-        return motelFeeService.getFees(motelId, userId);
+        Requester requester = Requester.fromContext();
+        return motelFeeService.getFees(motelId, requester);
     }
 
     @PostMapping
     public void addFee(@RequestParam UUID motelId, @Valid @RequestBody AddFeeRequest request) {
-        UUID userId = UserExtractor.extractUserIdFromContext();
-        motelFeeService.addFee(motelId, userId, request);
+        Requester requester = Requester.fromContext();
+        motelFeeService.addFee(motelId, requester, request);
     }
 
     @DeleteMapping("/{feeId}")
     public void deleteFee(@PathVariable UUID feeId) {
-        UUID userId = UserExtractor.extractUserIdFromContext();
-        motelFeeService.removeFee(feeId, userId);
+        Requester requester = Requester.fromContext();
+        motelFeeService.removeFee(feeId, requester);
     }
 
     @PatchMapping("/{feeId}")
     public void updateFee(@PathVariable UUID feeId, @Valid @RequestBody UpdateFeeRequest request) {
-        UUID userId = UserExtractor.extractUserIdFromContext();
-        motelFeeService.updateFee(feeId, userId, request);
+        Requester requester = Requester.fromContext();
+        motelFeeService.updateFee(feeId, requester, request);
     }
 }

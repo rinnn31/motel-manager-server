@@ -11,49 +11,69 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.github.rinnn31.motelserver.dto.request.AddMemberRequest;
+import com.github.rinnn31.motelserver.dto.request.InviteMemberRequest;
+import com.github.rinnn31.motelserver.dto.response.InviteInfoResponse;
 import com.github.rinnn31.motelserver.dto.response.MemberInfoResponse;
-import com.github.rinnn31.motelserver.security.UserExtractor;
+import com.github.rinnn31.motelserver.security.Requester;
 import com.github.rinnn31.motelserver.service.MemberService;
 
 import jakarta.validation.Valid;
 
+
 @RestController
-@RequestMapping("/api/members")
+@RequestMapping("/api")
 public class MemberController {
-    private final MemberService roomMemberService;
+    private final MemberService memberService;
 
-    public MemberController(MemberService roomMemberService) {
-        this.roomMemberService = roomMemberService;
+    public MemberController(MemberService memberService) {
+        this.memberService = memberService;
     }
 
-    @GetMapping("/by-room/{roomId}")
-    public List<MemberInfoResponse> getRoomMembersByRoomId(@PathVariable String roomId) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        return roomMemberService.getRoomMembersByRoomId(java.util.UUID.fromString(roomId), requesterId);
+    @GetMapping("/rooms/{roomId}/members")
+    public List<MemberInfoResponse> getRoomMembersByRoomId(@PathVariable UUID roomId) {
+        Requester requester = Requester.fromContext();
+        return memberService.getRoomMembersByRoomId(roomId, requester);
     }
 
-    @GetMapping("/by-motel/{motelId}")
-    public List<MemberInfoResponse> getRoomMembersByMotelId(@PathVariable String motelId) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        return roomMemberService.getRoomMembersByMotelId(java.util.UUID.fromString(motelId), requesterId);
+    @GetMapping("/motels/{motelId}/members")
+    public List<MemberInfoResponse> getRoomMembersByMotelId(@PathVariable UUID motelId) {
+        Requester requester = Requester.fromContext();
+        return memberService.getRoomMembersByMotelId(motelId, requester);
     }
 
-    @PostMapping
-    public void addRoomMember(@Valid @RequestBody AddMemberRequest request) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        roomMemberService.addMember(requesterId, request);
-    }
-
-    @PostMapping("/leave")
+    @PostMapping("/members/leave")
     public void leaveRoom() {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        roomMemberService.removeMember(requesterId, requesterId);
+        Requester requester = Requester.fromContext();
+        memberService.removeMember(requester, requester.userId());
     }
 
-    @PostMapping("/remove")
-    public void removeMember(@RequestParam String userId) {
-        UUID requesterId = UserExtractor.extractUserIdFromContext();
-        roomMemberService.removeMember(requesterId, UUID.fromString(userId));
+    @PostMapping("/members/remove")
+    public void removeMember(@RequestParam UUID userId) {
+        Requester requester = Requester.fromContext();
+        memberService.removeMember(requester, userId);
+    }
+
+    @PostMapping("/members/accept")
+    public void acceptInvite(@RequestParam UUID inviteId) {
+        Requester requester = Requester.fromContext();
+        memberService.acceptInvite(requester, inviteId);
+    }
+
+    @PostMapping("/members/reject")
+    public void rejectInvite(@RequestParam String inviteId) {
+        Requester requester = Requester.fromContext();
+        memberService.rejectInvite(requester, UUID.fromString(inviteId));
+    }
+
+    @PostMapping("/members/invite")
+    public void inviteMember(@Valid @RequestBody InviteMemberRequest request) {
+        Requester requester = Requester.fromContext();
+        memberService.inviteMember(requester, request);
+    }
+
+    @GetMapping("/members/invites")
+    public List<InviteInfoResponse> getInvites() {
+        Requester requester = Requester.fromContext();
+        return memberService.getInvites(requester);
     }
 }

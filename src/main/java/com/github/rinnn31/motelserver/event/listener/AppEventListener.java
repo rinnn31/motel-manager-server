@@ -33,7 +33,7 @@ public abstract class AppEventListener {
             .toList();
 
         if (!deviceTokens.isEmpty()) {
-            var invalidTokens = pushNotificationService.sendNotification(deviceTokens, title, body, extraData);
+            var invalidTokens = pushNotificationService.sendNotification(deviceTokens, title, body, extraData, type);
             for (String token : invalidTokens) {
                 userDeviceService.unregisterDeviceToken(token);
             }

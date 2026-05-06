@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import com.github.rinnn31.motelserver.dto.request.AddRoomRequest;
 import com.github.rinnn31.motelserver.dto.request.UpdateRoomRequest;
 import com.github.rinnn31.motelserver.dto.response.RoomInfoResponse;
-import com.github.rinnn31.motelserver.entity.Motel;
 import com.github.rinnn31.motelserver.entity.Room;
 import com.github.rinnn31.motelserver.event.model.RoomNameChangedEvent;
 import com.github.rinnn31.motelserver.event.model.RoomPriceChangedEvent;
@@ -18,6 +17,7 @@ import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.repository.MotelRepository;
 import com.github.rinnn31.motelserver.repository.MemberRepository;
 import com.github.rinnn31.motelserver.repository.RoomRepository;
+import com.github.rinnn31.motelserver.security.Requester;
 
 @Service
 public class RoomService {
@@ -41,51 +41,51 @@ public class RoomService {
         this.eventPublisher = eventPublisher;
     }
 
-    public RoomInfoResponse getRoomInfo(UUID roomId, UUID requesterId) {
+    public RoomInfoResponse getRoomInfo(UUID roomId, Requester requester) {
         var room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new AppError(ErrorCode.ROOM_NOT_FOUND));
         var motel = room.getMotel();
 
-        boolean isOwner = motel.getOwner().getId().equals(requesterId);
-        boolean isRoomMember = roomMemberRepository.existsByUser_IdAndRoom_IdAndEndDateIsNull(requesterId, roomId);
+        boolean isOwnerOrAdmin = requester.isAdmin() || motel.getOwner().getId().equals(requester.userId());
+        boolean isRoomMember = !isOwnerOrAdmin && roomMemberRepository.existsByUser_IdAndRoom_IdAndEndDateIsNull(requester.userId(), roomId);
 
-        if (!isOwner && !isRoomMember) {
+        if (!isOwnerOrAdmin && !isRoomMember) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
-        Integer memberCount = isOwner || isRoomMember ? roomMemberRepository.countByRoom_IdAndEndDateIsNull(roomId) : null;
+        Integer memberCount = isOwnerOrAdmin || isRoomMember ? roomMemberRepository.countByRoom_IdAndEndDateIsNull(roomId) : null;
         return new RoomInfoResponse(
             room.getId().toString(), 
             room.getRoomNumber(), 
-            isOwner || isRoomMember ? room.getPrice() : null, 
+            isOwnerOrAdmin || isRoomMember ? room.getPrice() : null, 
             memberCount
         );
     }
 
-    public List<RoomInfoResponse> getRooms(UUID requesterId, UUID motelId) {
+    public List<RoomInfoResponse> getRooms(Requester requester, UUID motelId) {
         var motel = motelRepository.findById(motelId)
                 .orElseThrow(() -> new AppError(ErrorCode.MOTEL_NOT_FOUND));
 
-        boolean isOwner = motel.getOwner().getId().equals(requesterId);
-        boolean isMotelMember = roomMemberRepository.existsByRoom_Motel_IdAndUser_IdAndEndDateIsNull(motelId, requesterId);
-
-        if (!isOwner && !isMotelMember) {
+        boolean isOwnerOrAdmin = requester.isAdmin() || motel.getOwner().getId().equals(requester.userId());
+        if (!isOwnerOrAdmin) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
         var rooms = roomRepository.findByMotel_Id(motelId);
         return rooms.stream().map(room -> {
-            boolean isRoomMember = roomMemberRepository.existsByUser_IdAndRoom_IdAndEndDateIsNull(requesterId, room.getId());
-            Integer memberCount = isRoomMember || isOwner ? roomMemberRepository.countByRoom_IdAndEndDateIsNull(room.getId()) : null;
+            Integer memberCount = roomMemberRepository.countByRoom_IdAndEndDateIsNull(room.getId());
             return new RoomInfoResponse(
                 room.getId().toString(),
                 room.getRoomNumber(),
-                isOwner || isRoomMember ? room.getPrice() : null,
+                room.getPrice(),
                 memberCount
             );
         }).toList();
     }
 
-    public RoomInfoResponse getJoinedRoomInfo(UUID requesterId) {
-        var member = roomMemberRepository.findByUser_IdAndEndDateIsNull(requesterId)
+    public RoomInfoResponse getJoinedRoomInfo(UUID userId) {
+        if (userId == null) {
+            return null;
+        }
+        var member = roomMemberRepository.findByUser_IdAndEndDateIsNull(userId)
                 .orElseThrow(() -> new AppError(ErrorCode.ROOM_NOT_FOUND));
         var room = member.getRoom();
         return new RoomInfoResponse(
@@ -96,17 +96,15 @@ public class RoomService {
         );
     }
 
-    private Motel checkOwnershipAndGetMotel(UUID motelId, UUID ownerId) {
-        var motel = motelRepository.findById(motelId)
-                .orElseThrow(() -> new AppError(ErrorCode.MOTEL_NOT_FOUND));
-        if (!motel.getOwner().getId().equals(ownerId)) {
+    public void addRoom(Requester requester, AddRoomRequest request) {
+        if (requester.isAdmin()) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
-        return motel;
-    }
-
-    public void addRoom(UUID ownerId, AddRoomRequest request) {   
-        var motel = checkOwnershipAndGetMotel(UUID.fromString(request.motelId()), ownerId);
+        var motel = motelRepository.findById(UUID.fromString(request.motelId()))
+                .orElseThrow(() -> new AppError(ErrorCode.MOTEL_NOT_FOUND));
+        if (!motel.getOwner().getId().equals(requester.userId())) {
+            throw new AppError(ErrorCode.INVALID_OPERATION);
+        }
         if (roomRepository.existsByMotel_IdAndRoomNumber(UUID.fromString(request.motelId()), request.roomNumber())) {
             throw new AppError(ErrorCode.ROOM_NUMBER_EXISTS);
         }
@@ -118,10 +116,12 @@ public class RoomService {
         roomRepository.save(room);
     }
 
-    public void deleteRoom(UUID ownerId, UUID roomId) {
+    public void deleteRoom(Requester requester, UUID roomId) {
         var room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new AppError(ErrorCode.INVALID_OPERATION));
-        checkOwnershipAndGetMotel(room.getMotel().getId(), ownerId);
+        if (!room.getMotel().getOwner().getId().equals(requester.userId())) {
+            throw new AppError(ErrorCode.INVALID_OPERATION);
+        }
 
         if (roomMemberRepository.existsByRoom_IdAndEndDateIsNull(roomId)) {
             throw new AppError(ErrorCode.ROOM_HAS_MEMBERS);
@@ -130,10 +130,12 @@ public class RoomService {
         roomRepository.delete(room);
     }
 
-    public void updateRoom(UUID requesterId, UUID roomId, UpdateRoomRequest request) {
+    public void updateRoom(Requester requester, UUID roomId, UpdateRoomRequest request) {
         var room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new AppError(ErrorCode.INVALID_OPERATION));
-        checkOwnershipAndGetMotel(room.getMotel().getId(), requesterId);
+        if (!room.getMotel().getOwner().getId().equals(requester.userId())) {
+            throw new AppError(ErrorCode.INVALID_OPERATION);
+        }
 
         if (request.roomNumber() != null) {
             if (roomRepository.existsByMotel_IdAndRoomNumber(room.getMotel().getId(), request.roomNumber())) {

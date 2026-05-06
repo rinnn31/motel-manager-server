@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách nhà trọ | Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .motel-card:hover { transform: translateY(-5px); }
+        .empty-state-img { filter: grayscale(1) opacity(0.5); }
+    </style>
+</head>
+<body class="bg-gray-50 flex min-h-screen font-sans">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900 text-white fixed h-full p-6 z-40">
+        <h1 class="text-xl font-bold text-blue-400 mb-10">MOTEL ADMIN</h1>
+        <nav class="space-y-4">
+            <a href="/admin/dashboard" class="flex items-center gap-3 p-3 bg-blue-600 rounded-lg shadow-lg"><i class="fa-solid fa-people-roof"></i> Người dùng</a>
+            <a href="/admin/statistics" class="flex items-center gap-3 p-3 hover:bg-slate-800 rounded-lg transition"><i class="fa-solid fa-chart-simple"></i> Người dùng</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-64 flex-1 p-8">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800">Danh sách nhà trọ</h2>
+                <p id="landlordInfo" class="text-sm text-gray-500 italic">Đang tải thông tin chủ trọ...</p>
+            </div>
+        </div>
+
+        <!-- Motel Grid -->
+        <div id="motelContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Skeletons -->
+            <div class="animate-pulse bg-white p-6 rounded-xl border h-64"></div>
+            <div class="animate-pulse bg-white p-6 rounded-xl border h-64"></div>
+            <div class="animate-pulse bg-white p-6 rounded-xl border h-64"></div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden flex flex-col items-center justify-center py-20">
+            <img src="https://cdn-icons-png.flaticon.com/512/4076/4076432.png" alt="No data" class="w-40 h-40 empty-state-img mb-6">
+            <h3 class="text-xl font-bold text-gray-400">Chưa có nhà trọ nào</h3>
+        </div>
+    </main>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const landlordId = urlParams.get('landlordId');
+
+        async function fetchMotels() {
+            const container = document.getElementById('motelContainer');
+            const emptyState = document.getElementById('emptyState');
+            
+            try {
+                const response = await fetch(`/api/admin/motels?landlordId=${landlordId}`);
+                const motels = (await response.json()).data;
+
+                document.getElementById('landlordInfo').innerText = `Danh sách khu trọ của chủ sở hữu #${landlordId}`;
+
+                if (!motels || motels.length === 0) {
+                    container.classList.add('hidden');
+                    emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                renderMotels(motels);
+            } catch (error) {
+                container.innerHTML = `<div class="col-span-full p-10 text-center text-red-500 font-semibold italic">Lỗi kết nối Server!</div>`;
+            }
+        }
+
+        function renderMotels(motels) {
+            const container = document.getElementById('motelContainer');
+            container.innerHTML = motels.map(motel => `
+                <div class="motel-card bg-white rounded-xl shadow-sm border transition-all duration-300 hover:shadow-lg overflow-hidden flex flex-col">
+                    <!-- Card Header -->
+                    <div class="p-5 border-b border-gray-50 bg-white">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="bg-blue-50 w-12 h-12 rounded-lg flex items-center justify-center text-blue-600">
+                                <i class="fa-solid fa-hotel text-xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800 line-clamp-1 uppercase tracking-tight">${motel.name}</h3>
+                        <p class="text-sm text-gray-400 mt-1 flex items-center gap-2">
+                             <i class="fa-solid fa-users-gear text-xs"></i> ${motel.memberCount} thành viên đang ở
+                        </p>
+                    </div>
+                    
+                    <!-- Quick Navigation Buttons -->
+                    <div class="grid grid-cols-2 divide-x divide-gray-100 border-b border-gray-50 bg-gray-50/50">
+                        <a href="/admin/members?motelId=${motel.id}" class="py-3 px-2 flex flex-col items-center gap-1 hover:bg-white transition group">
+                            <i class="fa-solid fa-user-group text-blue-500 group-hover:scale-110 transition"></i>
+                            <span class="text-[11px] font-bold text-gray-600 uppercase">Thành viên</span>
+                        </a>
+                        <a href="/admin/rooms?motelId=${motel.id}" class="py-3 px-2 flex flex-col items-center gap-1 hover:bg-white transition group">
+                            <i class="fa-solid fa-door-open text-purple-500 group-hover:scale-110 transition"></i>
+                            <span class="text-[11px] font-bold text-gray-600 uppercase">DS Phòng</span>
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchMotels);
+    </script>
+</body>
+</html>

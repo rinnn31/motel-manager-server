@@ -10,12 +10,14 @@ import com.github.rinnn31.motelserver.dto.request.AddFeeRequest;
 import com.github.rinnn31.motelserver.dto.request.UpdateFeeRequest;
 import com.github.rinnn31.motelserver.dto.response.FeeInfoResponse;
 import com.github.rinnn31.motelserver.entity.CalculationType;
+import com.github.rinnn31.motelserver.entity.Motel;
 import com.github.rinnn31.motelserver.entity.MotelFee;
 import com.github.rinnn31.motelserver.event.model.MotelFeeChangedEvent;
 import com.github.rinnn31.motelserver.exception.AppError;
 import com.github.rinnn31.motelserver.exception.ErrorCode;
 import com.github.rinnn31.motelserver.repository.MotelFeeRepository;
 import com.github.rinnn31.motelserver.repository.MotelRepository;
+import com.github.rinnn31.motelserver.security.Requester;
 import com.github.rinnn31.motelserver.repository.MemberRepository;
 import com.github.rinnn31.motelserver.utils.EnumHelper;
 
@@ -37,20 +39,30 @@ public class MotelFeeService {
 
     }
 
-    public List<FeeInfoResponse> getFees(UUID motelId, UUID requesterId) {
+    private Motel getMotelIfAccessible(UUID motelId, Requester requester) {
         var motel = motelRepository.findById(motelId)
                 .orElseThrow(() -> new AppError(ErrorCode.MOTEL_NOT_FOUND));
-        if (!motel.getOwner().getId().equals(requesterId) && !memberRepository.existsByRoom_Motel_IdAndUser_IdAndEndDateIsNull(motelId, requesterId)) {
+        
+        if (
+            requester.isAdmin() ||
+            motel.getOwner().getId().equals(requester.userId()) ||
+            memberRepository.existsByRoom_Motel_IdAndUser_IdAndEndDateIsNull(motelId, requester.userId())
+        ) {
+            return motel;
+        } else {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
+    }
 
+    public List<FeeInfoResponse> getFees(UUID motelId, Requester requester) {
+        var motel = getMotelIfAccessible(motelId, requester);
         return motel.getFees().stream().map(FeeInfoResponse::new).toList();
     }
 
-    public void addFee(UUID motelId, UUID ownerId, AddFeeRequest request) {
+    public void addFee(UUID motelId, Requester requester, AddFeeRequest request) {
         var motel = motelRepository.findById(motelId)
                 .orElseThrow(() -> new AppError(ErrorCode.MOTEL_NOT_FOUND));
-        if (!motel.getOwner().getId().equals(ownerId)) {
+        if (!motel.getOwner().getId().equals(requester.userId())) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
 
@@ -64,10 +76,10 @@ public class MotelFeeService {
         eventPublisher.publishEvent(new MotelFeeChangedEvent(motelId.toString()));
     }
 
-    public void removeFee(UUID feeId, UUID ownerId) {
+    public void removeFee(UUID feeId, Requester requester) {
         var fee = motelFeeRepository.findById(feeId)
                 .orElseThrow(() -> new AppError(ErrorCode.INVALID_ID));
-        if (!fee.getMotel().getOwner().getId().equals(ownerId)) {
+        if (!fee.getMotel().getOwner().getId().equals(requester.userId())) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
 
@@ -76,10 +88,10 @@ public class MotelFeeService {
         eventPublisher.publishEvent(new MotelFeeChangedEvent(fee.getMotel().getId().toString()));
     }
 
-    public void updateFee(UUID feeId, UUID ownerId, UpdateFeeRequest request) {
+    public void updateFee(UUID feeId, Requester requester, UpdateFeeRequest request) {
         var fee = motelFeeRepository.findById(feeId)
                 .orElseThrow(() -> new AppError(ErrorCode.INVALID_ID));
-        if (!fee.getMotel().getOwner().getId().equals(ownerId)) {
+        if (!fee.getMotel().getOwner().getId().equals(requester.userId())) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
 

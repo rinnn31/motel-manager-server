@@ -6,7 +6,7 @@ import com.github.rinnn31.motelserver.utils.validation.Phone;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record AddMemberRequest(
+public record InviteMemberRequest(
     @NotBlank(message = "Không được để trống mã phòng")
     @UUID(message = "Mã phòng không hợp lệ")
     String roomId,
