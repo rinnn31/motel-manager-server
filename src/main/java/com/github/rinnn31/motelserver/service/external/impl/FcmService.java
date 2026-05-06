@@ -2,13 +2,15 @@ package com.github.rinnn31.motelserver.service.external.impl;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Collections;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import com.github.rinnn31.motelserver.entity.NotificationType;
 import com.github.rinnn31.motelserver.service.external.PushNotificationService;
+import com.github.rinnn31.motelserver.utils.JsonHelper;
+import com.google.firebase.messaging.AndroidConfig;
+import com.google.firebase.messaging.ApnsConfig;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.MulticastMessage;
@@ -26,8 +28,16 @@ public class FcmService implements PushNotificationService {
                 .setTitle(title)
                 .setBody(body)
                 .build())
+            .setAndroidConfig(AndroidConfig.builder()
+                .setPriority(AndroidConfig.Priority.HIGH)
+                .build()
+            )
+            .setApnsConfig(ApnsConfig.builder()
+                .putHeader("apns-priority", "10")
+                .build()
+            )
             .putData("notificationType", type.name())
-            .putAllData(extraData != null ? extraData : Collections.emptyMap())
+            .putData("payload", extraData != null ? JsonHelper.toJson(extraData) : "")
             .build();
 
         try {

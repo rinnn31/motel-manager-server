@@ -54,11 +54,6 @@ public class AccountService {
         this.objectStorageService = objectStorageService;
     }   
 
-    public void deleteAccount(UUID userId) {
-        var user = userRepository.findById(userId).orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
-        userRepository.delete(user);
-    }
-
     public void changePassword(Requester requester, String oldPassword, String newPassword) {
         var user = userRepository.findById(requester.userId()).orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {

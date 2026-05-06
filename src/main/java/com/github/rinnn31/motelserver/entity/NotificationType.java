@@ -8,5 +8,6 @@ public enum NotificationType {
     ROOM_INFO_CHANGED,
     ROOM_MEMBER_CHANGED,
     INVOICE_UPDATED,
-    INVOICE_DELETED
+    INVOICE_DELETED, 
+    INVITATION
 }

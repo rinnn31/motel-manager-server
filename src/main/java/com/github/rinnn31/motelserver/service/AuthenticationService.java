@@ -132,6 +132,8 @@ public class AuthenticationService {
         if (!sessionManagementService.isSessionValid(request.sessionToken(), requesterId.toString())) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
+
+        System.out.println("Registering device token: " + request.deviceToken() + " for user: " + requesterId);
         
         userDeviceService.registerDeviceToken(request.sessionToken(), request.deviceToken(), user);
 

@@ -1,6 +1,5 @@
 package com.github.rinnn31.motelserver.controller.api;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -52,12 +51,6 @@ public class AccountController {
     public void changePassword(@Valid @RequestBody ChangePasswordRequest input) {
         Requester requester = Requester.fromContext();
         accountService.changePassword(requester, input.oldPassword(), input.newPassword());
-    }
-
-    @DeleteMapping("/me")
-    public void deleteAccount() {
-        Requester requester = Requester.fromContext();
-        accountService.deleteAccount(requester.userId());
     }
 
     @PostMapping("/me/contactpoint/otp")
