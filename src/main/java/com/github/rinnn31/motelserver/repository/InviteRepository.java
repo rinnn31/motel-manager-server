@@ -13,5 +13,5 @@ public interface InviteRepository extends JpaRepository<Invite, UUID> {
 
     boolean existsByRoom_Motel_IdAndUser_IdAndExpiredAtAfter(UUID motelId, UUID userId, LocalDateTime now);
 
-
+    void deleteAllByUser_Id(UUID userId);
 }

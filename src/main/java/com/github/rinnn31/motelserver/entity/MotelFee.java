@@ -17,7 +17,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(
-    name = "motel_fee",
+    name = "motel_fees",
     indexes = {
         @Index(name = "idx_motel_id_name", columnList = "motel_id,name")
     }

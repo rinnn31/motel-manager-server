@@ -45,6 +45,7 @@ public class Notification {
     @Column(nullable = false, name = "is_read")
     private boolean isRead = false;
 
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private NotificationType type;
 

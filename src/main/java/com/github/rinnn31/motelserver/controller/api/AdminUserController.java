@@ -42,11 +42,6 @@ public class AdminUserController {
         return accountService.createUser(request);
     }
 
-    @DeleteMapping("/{userId}")
-    public void deleteUser(@RequestParam String userId) {
-        accountService.deleteAccount(java.util.UUID.fromString(userId));
-    }
-
     @PatchMapping("/{userId}/verify")
     public void verifyUser(@RequestParam String userId) {
         accountService.verifyUser(java.util.UUID.fromString(userId));

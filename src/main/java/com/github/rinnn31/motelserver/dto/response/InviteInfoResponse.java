@@ -4,7 +4,8 @@ public record InviteInfoResponse(
     String inviteId, 
     String motelName,
     String roomNumber,
-    String landlordName
+    String landlordName,
+    Long expiredAt
 ) {
     
 }

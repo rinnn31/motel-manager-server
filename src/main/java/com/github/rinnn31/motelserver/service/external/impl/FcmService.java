@@ -11,6 +11,7 @@ import com.github.rinnn31.motelserver.service.external.PushNotificationService;
 import com.github.rinnn31.motelserver.utils.JsonHelper;
 import com.google.firebase.messaging.AndroidConfig;
 import com.google.firebase.messaging.ApnsConfig;
+import com.google.firebase.messaging.Aps;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.MulticastMessage;
@@ -34,6 +35,10 @@ public class FcmService implements PushNotificationService {
             )
             .setApnsConfig(ApnsConfig.builder()
                 .putHeader("apns-priority", "10")
+                .setAps(Aps.builder()
+                    .setContentAvailable(true)
+                    .setSound("default")
+                    .build())
                 .build()
             )
             .putData("notificationType", type.name())

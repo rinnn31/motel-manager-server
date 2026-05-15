@@ -2,6 +2,7 @@ package com.github.rinnn31.motelserver.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
@@ -169,7 +170,8 @@ public class MemberService {
         member.setStartDate(now.toLocalDate());
         memberRepository.save(member);
 
-        inviteRepository.delete(invite);
+        // Delete all pending invites for the user since they can only be in one room at a time
+        inviteRepository.deleteAllByUser_Id(requester.userId());
 
         var room = invite.getRoom();
         eventPublisher.publishEvent(new InvitationEvent.InvitationAccepted(
@@ -216,7 +218,8 @@ public class MemberService {
                 invite.getId().toString(),
                 motel.getDisplayName(),
                 room.getRoomNumber(),
-                motel.getOwner().getFullName()
+                motel.getOwner().getFullName(),
+                invite.getExpiredAt().toInstant(ZoneOffset.UTC).toEpochMilli()
             );
         }).toList();
     }
