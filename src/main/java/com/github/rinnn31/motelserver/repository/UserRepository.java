@@ -17,7 +17,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     boolean existsByPhoneNumber(String phoneNumber);
 
-    Page<User> findAllByPhoneNumberContaining(String phoneNumber, Pageable pageable);
+    Page<User> findAllByPhoneNumberContainingIgnoreCaseOrFullNameContainingIgnoreCase(String phoneNumber, String fullName, Pageable pageable);
 
     Page<User> findAllByPhoneNumberContainingAndRole(String phoneNumber, UserRole role, Pageable pageable);
 

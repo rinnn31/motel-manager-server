@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.github.rinnn31.motelserver.dto.request.InviteMemberRequest;
 import com.github.rinnn31.motelserver.dto.response.InviteInfoResponse;
@@ -130,6 +131,9 @@ public class MemberService {
         var user = userRepository.findByPhoneNumber(request.phoneNumber())
                 .orElseThrow(() -> new AppError(ErrorCode.USER_NOT_FOUND));
 
+        if (user.getRole() == com.github.rinnn31.motelserver.entity.UserRole.LANDLORD) {
+            throw new AppError(ErrorCode.IS_LANDLORD);
+        }
         if (memberRepository.existsByUser_IdAndEndDateIsNull(user.getId())) {
             throw new AppError(ErrorCode.USER_ALREADY_IN_ROOM);
         }
@@ -151,6 +155,7 @@ public class MemberService {
         ));
     }
 
+    @Transactional
     public void acceptInvite(Requester requester, UUID inviteId) {
         var invite = inviteRepository.findById(inviteId)
                 .orElseThrow(() -> new AppError(ErrorCode.INVALID_ID));
@@ -190,6 +195,7 @@ public class MemberService {
         ));
     }
 
+    @Transactional
     public void rejectInvite(Requester requester, UUID inviteId) {
         var invite = inviteRepository.findById(inviteId)
                 .orElseThrow(() -> new AppError(ErrorCode.INVALID_ID));

@@ -23,7 +23,7 @@ public enum ErrorCode {
     /* User */
     USER_NOT_FOUND("Người dùng không tồn tại", HttpStatus.NOT_FOUND),
     OLD_PASSWORD_INCORRECT("Mật khẩu cũ không đúng", HttpStatus.BAD_REQUEST),
-
+    
     /* Otp */
     OTP_NOT_READY("Vui lòng chờ trước khi yêu cầu mã OTP mới", HttpStatus.TOO_MANY_REQUESTS),
     OTP_EXPIRED("Mã OTP đã hết hạn", HttpStatus.BAD_REQUEST),
@@ -43,8 +43,10 @@ public enum ErrorCode {
     MESSAGE_NOT_FOUND("Tin nhắn không tồn tại", HttpStatus.NOT_FOUND),
     USER_ALREADY_IN_ROOM("Người dùng đã tham gia một nhà trọ rồi", HttpStatus.BAD_REQUEST),
     ALREADY_INVITED("Bạn đã gửi lời mời vào nhà trọ này rồi, vui lòng chờ người dùng đó phản hồi", HttpStatus.BAD_REQUEST), 
+    IS_LANDLORD("Số điện thoại không phải là của người thuê", HttpStatus.BAD_REQUEST),
     ALREADY_PAID("Bạn đã xác nhận thanh toán hóa đơn này rồi", HttpStatus.BAD_REQUEST),
     PAYMENT_CONFIRMED("Hoá đơn đã được xác nhận thanh toán rồi", HttpStatus.BAD_REQUEST),
+    FEE_NAME_ALREADY_EXISTS("Tên phí đã tồn tại trong nhà trọ này", HttpStatus.BAD_REQUEST)
     ;
     private final String message;
 

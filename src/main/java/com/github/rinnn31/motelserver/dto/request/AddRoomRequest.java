@@ -5,6 +5,7 @@ import org.hibernate.validator.constraints.UUID;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
 
 public record AddRoomRequest(
     @NotBlank(message = "Số phòng không được để trống")
@@ -12,6 +13,7 @@ public record AddRoomRequest(
     String roomNumber,
 
     @PositiveOrZero(message = "Giá phòng không được là số âm")
+    @NotNull(message = "Giá phòng không được để trống")
     Integer price,
 
     @NotBlank(message = "ID nhà trọ không được để trống")

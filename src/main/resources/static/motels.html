@@ -1,0 +1,341 @@
+<!-- motels.html -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Quản lí nhà trọ</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+</head>
+
+<body class="bg-gray-100">
+
+<div class="flex min-h-screen">
+
+    <!-- SIDEBAR -->
+    <aside class="w-84 bg-gray-900 text-white flex flex-col">
+
+        <div class="p-6 border-b border-gray-800">
+
+            <h1 class="text-2xl font-bold">
+                Admin Dashboard
+            </h1>
+
+        </div>
+
+        <nav class="flex-1 p-4 space-y-2">
+
+            <a href="/admin/users"
+               class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-800 transition">
+
+                <i class="fa-solid fa-users"></i>
+
+                <span>Quản lí người dùng</span>
+
+            </a>
+
+            <a href="/admin/motels"
+               class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-800">
+
+                <i class="fa-solid fa-building"></i>
+
+                <span>Quản lí danh sách nhà trọ</span>
+
+            </a>
+
+        </nav>
+
+    </aside>
+
+    <!-- MAIN -->
+    <main class="flex-1 overflow-auto">
+
+        <!-- HEADER -->
+        <div class="bg-white shadow px-8 py-5">
+
+            <h2 class="text-3xl font-bold">
+                Quản lí danh sách nhà trọ
+            </h2>
+
+        </div>
+
+        <!-- CONTENT -->
+        <div class="p-8">
+
+            <!-- FILTER -->
+            <div class="bg-white rounded-2xl shadow p-4 mb-6 flex gap-4">
+
+                <div class="relative">
+
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-6 text-gray-400"></i>
+
+                    <input id="filterInput"
+                           type="text"
+                           placeholder="Tìm theo tên nhà trọ hoặc chủ trọ..."
+                           class="border rounded-xl pl-11 pr-4 py-3 w-96"/>
+
+                </div>
+
+                <button onclick="applyFilter()"
+                        class="bg-gray-900 hover:bg-gray-800 text-white px-5 py-3 rounded-xl">
+
+                    <i class="fa-solid fa-filter mr-2"></i>
+
+                    Lọc
+
+                </button>
+
+            </div>
+
+            <!-- TABLE -->
+            <div class="bg-white rounded-2xl shadow overflow-hidden">
+
+                <table class="w-full">
+
+                    <thead class="bg-gray-100">
+
+                    <tr>
+
+                        <th class="p-5 text-left">Tên nhà trọ</th>
+                        <th class="p-5 text-left">Chủ trọ</th>
+                        <th class="p-5 text-left">Số thành viên</th>
+                        <th class="p-5 text-left">Hành động</th>
+
+                    </tr>
+
+                    </thead>
+
+                    <tbody id="motelsTable"></tbody>
+
+                </table>
+
+                <!-- EMPTY -->
+                <div id="emptyState"
+                     class="hidden p-16 text-center text-gray-500">
+
+                    <i class="fa-solid fa-building-circle-xmark text-5xl mb-4"></i>
+
+                    <p class="text-lg">
+                        Không có nhà trọ nào phù hợp trên hệ thống
+                    </p>
+
+                </div>
+
+                <!-- PAGINATION -->
+                <div class="flex justify-between items-center px-6 py-5 border-t">
+
+                    <div id="paginationInfo"
+                         class="text-gray-500"></div>
+
+                    <div class="flex items-center gap-2">
+
+                        <button onclick="prevPage()"
+                                class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg">
+
+                            <i class="fa-solid fa-chevron-left"></i>
+
+                        </button>
+
+                        <div id="pageNumber"
+                             class="px-4 py-2 font-semibold"></div>
+
+                        <button onclick="nextPage()"
+                                class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg">
+
+                            <i class="fa-solid fa-chevron-right"></i>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+<script>
+
+let currentPage = 0;
+
+let totalPages = 0;
+
+const pageSize = 10;
+
+async function loadMotels() {
+
+    const filter = document
+        .getElementById("filterInput")
+        .value
+        .trim();
+
+    const response = await fetch(
+        `/api/admin/motels?page=${currentPage}&size=${pageSize}&filter=${encodeURIComponent(filter)}`
+    );
+
+    const data = (await response.json()).data;
+
+    const motels = data.content || [];
+
+    totalPages = data.totalPages || 0;
+
+    document.getElementById("paginationInfo").innerText =
+        `Tổng ${data.totalElements || 0} nhà trọ`;
+
+    document.getElementById("pageNumber").innerText =
+        `Trang ${currentPage + 1} / ${Math.max(totalPages, 1)}`;
+
+    const tbody = document.getElementById("motelsTable");
+
+    const emptyState = document.getElementById("emptyState");
+
+    tbody.innerHTML = "";
+
+    if (motels.length === 0) {
+
+        emptyState.classList.remove("hidden");
+
+        return;
+    }
+
+    emptyState.classList.add("hidden");
+
+    for (const motel of motels) {
+
+        let landlordName = "Không xác định";
+
+        try {
+
+            const landlordRes = await fetch(
+                `/api/admin/motels/${motel.id}/landlord`
+            );
+
+            const landlord = (await landlordRes.json()).data;
+
+            landlordName = landlord.fullName;
+
+        } catch (e) {
+
+            console.error(e);
+        }
+
+        tbody.innerHTML += `
+            <tr class="border-t hover:bg-gray-50">
+
+                <td class="p-5 font-semibold">
+
+                    <div class="flex items-center gap-3">
+
+                        <div class="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center">
+
+                            <i class="fa-solid fa-building text-blue-600"></i>
+
+                        </div>
+
+                        <div>
+                            ${motel.name}
+                        </div>
+
+                    </div>
+
+                </td>
+
+                <td class="p-5">
+
+                    <div class="flex items-center gap-3">
+
+                        <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+
+                            <i class="fa-solid fa-user text-gray-600"></i>
+
+                        </div>
+
+                        <div>
+                            ${landlordName}
+                        </div>
+
+                    </div>
+
+                </td>
+
+                <td class="p-5">
+
+                    <div class="inline-flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">
+
+                        <i class="fa-solid fa-users text-gray-600"></i>
+
+                        <span>${motel.memberCount}</span>
+
+                    </div>
+
+                </td>
+
+                <td class="p-5">
+
+                    <a href="/admin/motel/${motel.id}"
+                       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg inline-flex items-center gap-2">
+
+                        <i class="fa-solid fa-eye"></i>
+
+                        <span>Xem chi tiết</span>
+
+                    </a>
+
+                </td>
+
+            </tr>
+        `;
+    }
+}
+
+function applyFilter() {
+
+    currentPage = 0;
+
+    loadMotels();
+}
+
+function nextPage() {
+
+    if (currentPage + 1 >= totalPages) {
+        return;
+    }
+
+    currentPage++;
+
+    loadMotels();
+}
+
+function prevPage() {
+
+    if (currentPage === 0) {
+        return;
+    }
+
+    currentPage--;
+
+    loadMotels();
+}
+
+document.getElementById("filterInput")
+    .addEventListener("keydown", function(event) {
+
+        if (event.key === "Enter") {
+            applyFilter();
+        }
+    });
+
+loadMotels();
+
+</script>
+
+</body>
+</html>

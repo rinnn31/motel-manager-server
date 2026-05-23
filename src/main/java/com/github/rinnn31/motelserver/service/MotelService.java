@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import com.github.rinnn31.motelserver.dto.response.MotelInfoResponse;
@@ -148,11 +149,11 @@ public class MotelService {
         );
     }
 
-    public List<MotelInfoResponse> getAllMotels() {
-        var motels = motelRepository.findAll();
-        return motels.stream().map(motel -> {
+    public Page<MotelInfoResponse> getAllMotels(String filter, int page, int size) {
+        var motels = motelRepository.findByDisplayNameContainingIgnoreCaseOrOwner_FullNameContainingIgnoreCase(filter, filter, org.springframework.data.domain.PageRequest.of(page, size));
+        return motels.map(motel -> {
             int memberCount = memberRepository.countByRoom_Motel_IdAndEndDateIsNull(motel.getId());
             return new MotelInfoResponse(motel.getId().toString(), motel.getDisplayName(), memberCount);
-        }).toList();
+        });
     }
 }

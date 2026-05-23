@@ -28,13 +28,12 @@ public class AdminUserController {
 
     
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public Page<UserInfoResponse> getUsers(
-        @RequestParam(required = false) String filterNumber, 
+        @RequestParam(required = false) String filter, 
         @RequestParam(defaultValue = "0") int page, 
         @RequestParam(defaultValue = "50") int size
     ) {
-        return accountService.getUsers(filterNumber, page, size);
+        return accountService.getUsers(filter, page, size);
     }
 
     @PostMapping

@@ -19,13 +19,13 @@ public class PhoneE164Deserializer extends JsonDeserializer<String> {
             Phonenumber.PhoneNumber number = util.parse(raw, "VN");
 
             if (!util.isValidNumber(number)) {
-                return null;
+                return "invalid";
             }
 
             return util.format(number, PhoneNumberUtil.PhoneNumberFormat.E164);
 
         } catch (Exception e) {
-            return null;
+            return "invalid";
         }
     }
 }

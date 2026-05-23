@@ -2,12 +2,13 @@ package com.github.rinnn31.motelserver.controller.web;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class AdminPageController {
-    @GetMapping("/admin/dashboard")
+    @GetMapping("/admin/users")
     public String usersPage() {
-        return "forward:/dashboard.html";
+        return "forward:/users.html";
     }
     
     @GetMapping("/admin/login")
@@ -15,14 +16,13 @@ public class AdminPageController {
         return "forward:/login.html";
     }
 
-    @GetMapping("/admin/statistics")
-    public String statisticsPage() {
-        return "forward:/statistics.html";
-    }
-
     @GetMapping("/admin/motels")
-    public String motelsListPage() {
-        return "forward:/motels-list.html";
+    public String motelsListPage(@RequestParam(required = false) String landlordId) {
+        if (landlordId != null) {
+            return "forward:/landlord-motels.html?landlordId=" + landlordId;
+        } else {
+            return "forward:/motels.html";
+        }
     }
 
     @GetMapping("/admin/motel/{motelId}")

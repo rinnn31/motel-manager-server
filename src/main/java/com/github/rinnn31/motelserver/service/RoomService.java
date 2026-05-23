@@ -142,6 +142,7 @@ public class RoomService {
                 throw new AppError(ErrorCode.ROOM_NUMBER_EXISTS);
             }
             room.setRoomNumber(request.roomNumber());
+            roomRepository.save(room);
             eventPublisher.publishEvent(new RoomNameChangedEvent(
                 room.getMotel().getId().toString(),
                 room.getId().toString(),
@@ -150,6 +151,7 @@ public class RoomService {
         }
         if (request.roomPrice() != null) {
             room.setPrice(request.roomPrice());
+            roomRepository.save(room);
             eventPublisher.publishEvent(new RoomPriceChangedEvent(
                 room.getMotel().getId().toString(),
                 room.getId().toString(),

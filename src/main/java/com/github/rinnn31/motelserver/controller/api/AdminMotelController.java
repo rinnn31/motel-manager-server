@@ -34,13 +34,16 @@ public class AdminMotelController {
     }
 
     @GetMapping("/motels")
-    public List<MotelInfoResponse> getAllMotels(
-        @RequestParam(required = false) UUID landlordId
+    public Object getAllMotels(
+        @RequestParam(required = false) UUID landlordId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "50") int size,
+        @RequestParam(required = false) String filter
     ) {
         if (landlordId != null) {
             return motelService.getMotelsOfLandlord(landlordId);
         } else {
-            return motelService.getAllMotels();
+            return motelService.getAllMotels(filter, page, size);
         }
     }
 

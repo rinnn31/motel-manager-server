@@ -65,6 +65,9 @@ public class MotelFeeService {
         if (!motel.getOwner().getId().equals(requester.userId())) {
             throw new AppError(ErrorCode.INVALID_OPERATION);
         }
+        if (motelFeeRepository.existsByMotel_IdAndNameIgnoreCase(motelId, request.name())) {
+            throw new AppError(ErrorCode.FEE_NAME_ALREADY_EXISTS);
+        }
 
         var fee = new MotelFee();
         fee.setMotel(motel);

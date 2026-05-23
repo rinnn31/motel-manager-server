@@ -168,7 +168,11 @@ public class AccountService {
     /* Admin-only operations */
     public Page<UserInfoResponse> getUsers(String phoneNumberFilter, int page, int size) {
         Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
-        var usersPage = userRepository.findAllByPhoneNumberContaining(phoneNumberFilter, pageable);
+        var usersPage = userRepository.findAllByPhoneNumberContainingIgnoreCaseOrFullNameContainingIgnoreCase(
+            phoneNumberFilter != null ? phoneNumberFilter : "", 
+            phoneNumberFilter != null ? phoneNumberFilter : "", 
+            pageable
+        );
         return usersPage.map(user -> new UserInfoResponse(
             user.getId().toString(),
             user.getPhoneNumber(),
